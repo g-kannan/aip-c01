@@ -22,7 +22,11 @@ class HandlerTests(unittest.TestCase):
         self.client_patch = patch.object(handler, "client", self.client)
         self.client_patch.start()
         self.addCleanup(self.client_patch.stop)
-        self.env_patch = patch.dict(os.environ, {"MODEL_ID": "test-model"})
+        self.history = Mock()
+        self.history_patch = patch.object(handler, "history_client", self.history)
+        self.history_patch.start()
+        self.addCleanup(self.history_patch.stop)
+        self.env_patch = patch.dict(os.environ, {"MODEL_ID": "test-model", "HISTORY_TABLE": "history"})
         self.env_patch.start()
         self.addCleanup(self.env_patch.stop)
 
@@ -33,18 +37,31 @@ class HandlerTests(unittest.TestCase):
         self.assertEqual(json.loads(result["body"])["answer"], "Hello")
         self.assertEqual(self.client.converse.call_args.kwargs["inferenceConfig"]["maxTokens"], 512)
         self.assertEqual(self.client.converse.call_args.kwargs["messages"][0]["content"][0]["text"], "hi")
+        item = self.history.put_item.call_args.kwargs["Item"]
+        self.assertEqual(item["requestId"], {"S": "test"})
+        self.assertEqual(item["prompt"], {"S": "hi"})
+        self.assertEqual(item["answer"], {"S": "Hello"})
+        self.assertIn("createdAt", item)
 
     def test_invalid_input_never_calls_bedrock(self):
         for body in ("{", "[]", '{"prompt":" "}', json.dumps({"prompt": "x" * 16001})):
             self.assertEqual(handler.lambda_handler({"body": body}, self.context)["statusCode"], 400)
         self.assertEqual(handler.lambda_handler({"body": "x" * 32769}, self.context)["statusCode"], 413)
         self.client.converse.assert_not_called()
+        self.history.put_item.assert_not_called()
 
     def test_service_errors_are_sanitized(self):
         from botocore.exceptions import ClientError
         self.client.converse.side_effect = ClientError({"Error": {"Code": "ThrottlingException", "Message": "secret"}}, "Converse")
         result = handler.lambda_handler({"body": '{"prompt":"hello"}'}, self.context)
         self.assertEqual(result["statusCode"], 503)
+        self.assertNotIn("secret", result["body"])
+
+    def test_history_failure_is_reported(self):
+        from botocore.exceptions import ClientError
+        self.history.put_item.side_effect = ClientError({"Error": {"Code": "AccessDeniedException", "Message": "secret"}}, "PutItem")
+        result = handler.lambda_handler({"body": '{"prompt":"hello"}'}, self.context)
+        self.assertEqual(result["statusCode"], 502)
         self.assertNotIn("secret", result["body"])
 
 

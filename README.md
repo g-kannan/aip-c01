@@ -156,8 +156,14 @@ AWS profile. The API URL is supplied on the page after deployment. CORS is restr
 to a configured origin; CORS does not grant access, and callers also need IAM permission.
 
 The reusable SAM template is in `gateway/template.yaml`. It creates an HTTP API,
-Lambda function, execution role, and two CloudWatch log groups with 14-day retention.
-The function logs request IDs and error codes, not prompt text. Account-level Bedrock
+Lambda function, execution role, a DynamoDB history table, and two CloudWatch log groups with 14-day retention.
+For each successful model response, the function saves the prompt, answer, model ID, UTC timestamp,
+and Lambda request ID in DynamoDB. The `ConversationHistoryTable` stack output identifies the table.
+Requests remain independent; history is not sent back to Bedrock or displayed in the page.
+If the history write fails, the gateway returns an error after model invocation.
+The table uses on-demand billing and point-in-time recovery and is retained on stack deletion
+or replacement; delete it separately when its contents are no longer needed. Restrict access to
+the table because it contains prompt and response text. CloudWatch logs contain request IDs and error codes, not prompt text. Account-level Bedrock
 invocation logging, if enabled separately, can still capture prompts and responses.
 The API applies stage throttling, and the Lambda caps input at 16,000 characters and
 output at 512 tokens. Calls taking longer than the gateway timeout can fail; this is a
@@ -179,7 +185,7 @@ sam validate --lint --template-file gateway/template.yaml
 sam build --template-file gateway/template.yaml
 ```
 
-The unit tests mock Bedrock and need no AWS resources. The build installs the Lambda
+The unit tests mock Bedrock and DynamoDB and need no AWS resources. The build installs the Lambda
 dependency. For the example APAC profile, query Bedrock for the profile ARN and
 all its destination model ARNs, using your own AWS CLI profile and source region:
 
@@ -251,5 +257,5 @@ and credentials. The gateway uses non-streaming Converse. ConverseStream additio
 requires `bedrock:InvokeModelWithResponseStream` and a streaming implementation.
 
 When finished, run `sam delete` from the repository root with your configured stack,
-region, and profile, and review the confirmation. Deleting the stack does not remove
+region, and profile, and review the confirmation. Deleting the stack retains the DynamoDB history table and does not remove
 the local `.env` or caller IAM policy.

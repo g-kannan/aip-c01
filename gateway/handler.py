@@ -4,6 +4,7 @@ import binascii
 import json
 import logging
 import os
+from datetime import datetime, timezone
 
 import boto3
 from botocore.config import Config
@@ -13,6 +14,10 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 client = boto3.client("bedrock-runtime", config=Config(
     connect_timeout=3, read_timeout=20, retries={"total_max_attempts": 1, "mode": "standard"},
+))
+
+history_client = boto3.client("dynamodb", config=Config(
+    connect_timeout=2, read_timeout=2, retries={"total_max_attempts": 1, "mode": "standard"},
 ))
 
 
@@ -42,8 +47,6 @@ def lambda_handler(event, context):
             inferenceConfig={"maxTokens": 512},
         )
         text = "\n".join(block["text"] for block in result["output"]["message"]["content"] if "text" in block)
-        logger.info("request_id=%s status=success", request_id)
-        return response(200, {"answer": text, "usage": result.get("usage", {}), "stopReason": result.get("stopReason")})
     except ClientError as error:
         code = error.response.get("Error", {}).get("Code", "Unknown")
         logger.warning("request_id=%s bedrock_error=%s", request_id, code)
@@ -53,3 +56,23 @@ def lambda_handler(event, context):
     except (BotoCoreError, KeyError, TypeError):
         logger.exception("request_id=%s invocation_failed", request_id)
         return response(502, {"error": "The model request failed."})
+
+    try:
+        history_client.put_item(
+            TableName=os.environ["HISTORY_TABLE"],
+            Item={
+                "requestId": {"S": request_id},
+                "createdAt": {"S": datetime.now(timezone.utc).isoformat()},
+                "modelId": {"S": os.environ["MODEL_ID"]},
+                "prompt": {"S": prompt.strip()},
+                "answer": {"S": text or ""},
+            },
+            ConditionExpression="attribute_not_exists(requestId)",
+        )
+    except (BotoCoreError, ClientError, KeyError) as error:
+        code = error.response.get("Error", {}).get("Code", "Unknown") if isinstance(error, ClientError) else type(error).__name__
+        logger.warning("request_id=%s history_write_failed=%s", request_id, code)
+        return response(502, {"error": "The response could not be saved to conversation history."})
+
+    logger.info("request_id=%s status=success", request_id)
+    return response(200, {"answer": text, "usage": result.get("usage", {}), "stopReason": result.get("stopReason")})
