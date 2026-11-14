@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: IAM-authenticated Bedrock Converse gateway
+Parameters:
+  ModelId:
+    Type: String
+    Description: Converse model ID or inference profile ID
+    MinLength: 1
+  ModelResourceArns:
+    Type: CommaDelimitedList
+    Description: Exact Bedrock model and, for cross-region inference, inference profile and destination model ARNs
+  AllowedOrigin:
+    Type: String
+    Default: http://localhost:8501
+    Description: Single browser origin allowed by CORS
+Resources:
+  ApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 14
+  GatewayApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: prod
+      Auth:
+        EnableIamAuthorizer: true
+        DefaultAuthorizer: AWS_IAM
+      CorsConfiguration:
+        AllowOrigins: [!Ref AllowedOrigin]
+        AllowMethods: [POST, OPTIONS]
+        AllowHeaders: [content-type, authorization, x-amz-date, x-amz-security-token]
+      AccessLogSettings:
+        DestinationArn: !GetAtt ApiLogGroup.Arn
+        Format: '{"requestId":"$context.requestId","routeKey":"$context.routeKey","status":"$context.status","integrationStatus":"$context.integration.status","responseLatency":"$context.responseLatency"}'
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 10
+        ThrottlingRateLimit: 5
+  FunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-bedrock-gateway'
+      RetentionInDays: 14
+  ExplainFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-bedrock-gateway'
+      CodeUri: ./
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Timeout: 28
+      MemorySize: 256
+      Environment:
+        Variables:
+          MODEL_ID: !Ref ModelId
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: bedrock:InvokeModel
+              Resource: !Ref ModelResourceArns
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !GetAtt FunctionLogGroup.Arn
+      Events:
+        Explain:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref GatewayApi
+            Path: /explain
+            Method: POST
+Outputs:
+  ExplainUrl:
+    Value: !Sub 'https://${GatewayApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/prod/explain'
+  InvokeArn:
+    Description: Grant callers execute-api Invoke on this ARN
+    Value: !Sub 'arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${GatewayApi}/prod/POST/explain'

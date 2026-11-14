@@ -8,8 +8,9 @@ not an automated answer-quality benchmark.
 
 ### Setup
 
-Requires [uv](https://docs.astral.sh/uv/getting-started/installation/) and Python
-3.10 or newer. From this directory in PowerShell:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), Python
+3.10 or newer, and the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
+Clone this repository, open a terminal in its root directory, and install dependencies:
 
 ```powershell
 uv sync
@@ -18,11 +19,15 @@ uv sync
 Dependencies are declared in `pyproject.toml` and pinned in `uv.lock`. uv manages
 the local `.venv` automatically; you do not need to activate it before running.
 
-Both interfaces use your existing AWS CLI profile through a Boto3 session.
-The local `.env` contains configuration only:
+Both interfaces use an AWS CLI profile through a Boto3 session. Configure a named
+profile using your organization's credential method, such as
+[`aws configure sso`](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html)
+or `aws configure`. Create a text file named `.env` in the repository root (beside
+`app.py`) with the following values, replacing them with your own profile, region,
+and accessible model or inference profile as needed:
 
 ```dotenv
-AWS_PROFILE=agent
+AWS_PROFILE=your-profile
 AWS_REGION=ap-south-1
 BEDROCK_MODEL_ID=apac.amazon.nova-micro-v1:0
 ```
@@ -34,18 +39,18 @@ configuration. The `.env` file remains ignored by Git.
 To verify the profile from PowerShell:
 
 ```powershell
-aws sts get-caller-identity --profile agent
+aws sts get-caller-identity --profile your-profile
 ```
 
 If this is an IAM Identity Center (SSO) profile, renew an expired session with
-`aws sso login --profile agent`. If it uses `aws login`, use
-`aws login --profile agent`. The `boto3[crt]` dependency needed for these login
+`aws sso login --profile your-profile`. If it uses `aws login`, use
+`aws login --profile your-profile`. The `boto3[crt]` dependency needed for these login
 sessions is included in `pyproject.toml`.
 
-The lab uses `AWS_REGION=ap-south-1` (Mumbai) and
+The example uses `AWS_REGION=ap-south-1` (Mumbai) and
 `BEDROCK_MODEL_ID=apac.amazon.nova-micro-v1:0`. This is a cross-region inference
 profile that can route requests to its supported APAC destination regions.
-The AWS CLI profile `agent` selects credentials; the Bedrock inference profile
+The AWS CLI profile selects credentials; the Bedrock inference profile
 selects model routing. These are separate concepts.
 Your AWS identity needs `bedrock:InvokeModel` permission for the selected model,
 and the model must be accessible in your account and region. Each invocation
@@ -141,3 +146,110 @@ For Nova Micro in `ap-south-1`, use `apac.amazon.nova-micro-v1:0` rather than
 
 References: [Boto3 Converse API](https://docs.aws.amazon.com/boto3/latest/reference/services/bedrock-runtime/client/converse.html),
 [Amazon Nova Micro](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-amazon-nova-micro.html).
+
+## Project 2: Bedrock Chat Gateway
+
+The **Bedrock Chat Gateway** page sends independent prompts to an IAM-authenticated
+API Gateway HTTP API. A Python Lambda calls Bedrock Converse and returns JSON with
+`answer`, `usage`, and `stopReason`. The page signs requests with the chosen local
+AWS profile. The API URL is supplied on the page after deployment. CORS is restricted
+to a configured origin; CORS does not grant access, and callers also need IAM permission.
+
+The reusable SAM template is in `gateway/template.yaml`. It creates an HTTP API,
+Lambda function, execution role, and two CloudWatch log groups with 14-day retention.
+The function logs request IDs and error codes, not prompt text. Account-level Bedrock
+invocation logging, if enabled separately, can still capture prompts and responses.
+The API applies stage throttling, and the Lambda caps input at 16,000 characters and
+output at 512 tokens. Calls taking longer than the gateway timeout can fail; this is a
+single-response endpoint, not a streaming or multi-turn chat API.
+
+### Deploy the gateway
+
+Complete Project 1 setup first. Install the [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
+and ensure your AWS profile can deploy CloudFormation stacks, create the template's
+resources and IAM role, and access the SAM deployment bucket. Deployment and model
+invocations can incur AWS charges. Docker is only needed for container-based SAM
+builds or local invocation; the commands below use a normal local build.
+
+From the repository root, run:
+
+```powershell
+uv run python -m unittest discover -s gateway/tests -v
+sam validate --lint --template-file gateway/template.yaml
+sam build --template-file gateway/template.yaml
+```
+
+The unit tests mock Bedrock and need no AWS resources. The build installs the Lambda
+dependency. For the example APAC profile, query Bedrock for the profile ARN and
+all its destination model ARNs, using your own AWS CLI profile and source region:
+
+```powershell
+aws bedrock get-inference-profile --profile your-profile --region ap-south-1 --inference-profile-identifier apac.amazon.nova-micro-v1:0 --query "[inferenceProfileArn,models[*].modelArn]" --output json
+```
+
+The first value is the inference profile ARN; the nested list contains the model
+ARNs. Join **all** of them into one comma-separated string with no brackets or
+quotes. The account ID in the profile ARN must be your own. Destination regions can
+change, so query again when updating a deployment. For a different model or profile,
+discover its applicable resources and permissions for your account and region.
+
+The repository's `samconfig.toml`, if present, may contain another developer's
+account-specific settings. Do not deploy with those values. Run the guided setup:
+
+```powershell
+sam deploy --guided --template-file .aws-sam/build/template.yaml --profile your-profile
+```
+
+Review and replace every suggested value that does not match your environment:
+
+- **Stack Name** and **AWS Region**: choose your stack name and the source region
+  used in the profile query.
+- **ModelId**: the profile ID, such as `apac.amazon.nova-micro-v1:0`.
+- **ModelResourceArns**: the comma-separated profile and destination model ARNs
+  from your query. Do not leave either model parameter blank.
+- **AllowedOrigin**: the exact browser origin, for example `http://localhost:8501`.
+- Allow SAM to create the IAM role, save the configuration, and review the
+  CloudFormation changeset before confirming it. The named CLI profile must be
+  authorized for the target account.
+
+Guided deployment saves parameters in `samconfig.toml`; inspect it before subsequent
+deployments or sharing it, since it can contain account IDs and local settings.
+Use `sam build --template-file gateway/template.yaml` followed by `sam deploy`
+for subsequent deployments after checking those saved values.
+
+Copy the deployed stack's outputs into `.env` (use your own values):
+
+```dotenv
+GATEWAY_URL=https://YOUR_API_ID.execute-api.YOUR_REGION.amazonaws.com/prod/explain
+GATEWAY_INVOKE_ARN=arn:aws:execute-api:YOUR_REGION:YOUR_ACCOUNT_ID:YOUR_API_ID/prod/POST/explain
+```
+
+Use `ExplainUrl` for `GATEWAY_URL` and `InvokeArn` for `GATEWAY_INVOKE_ARN`.
+The gateway page displays both and uses the URL as an editable default. It also
+defaults to `AWS_PROFILE` from `.env`.
+
+Grant the Streamlit caller's IAM identity `execute-api:Invoke` on that exact
+`InvokeArn`; deployment does not modify caller identities. For example, an
+administrator can add this identity policy, replacing the resource with your output:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": "execute-api:Invoke",
+    "Resource": "arn:aws:execute-api:YOUR_REGION:YOUR_ACCOUNT_ID:YOUR_API_ID/prod/POST/explain"
+  }]
+}
+```
+
+The Lambda role has separate `bedrock:InvokeModel` permission on the supplied ARNs;
+this is the IAM permission required by the Converse API. Start Streamlit using the
+command above, open **Bedrock Chat Gateway**, verify the URL and AWS profile, enter a
+prompt, and select **Send prompt**. If you get HTTP 403, check the caller's permission
+and credentials. The gateway uses non-streaming Converse. ConverseStream additionally
+requires `bedrock:InvokeModelWithResponseStream` and a streaming implementation.
+
+When finished, run `sam delete` from the repository root with your configured stack,
+region, and profile, and review the confirmation. Deleting the stack does not remove
+the local `.env` or caller IAM policy.

@@ -1,6 +1,7 @@
 .env
 .env.*
 .venv/
+.aws-sam/
 __pycache__/
 *.py[cod]
 aws_genai*
