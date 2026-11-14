@@ -1,0 +1,191 @@
+/* Native Streamlit widgets use the matching palette in .streamlit/config.toml. */
+:root {
+    --lab-accent: #ff4b5c;
+    --lab-border: #303039;
+    --lab-muted: #b5b5c1;
+}
+
+[data-testid="stAppViewContainer"] {
+    background: radial-gradient(ellipse at 90% 0%, #291017 0%, transparent 48%), #09090c;
+}
+
+[data-testid="stHeader"] {
+    background: #09090ce6;
+    border-bottom: 1px solid #ffffff08;
+}
+
+[data-testid="stMainBlockContainer"] {
+    max-width: 1480px;
+    padding-top: 3.75rem;
+    padding-bottom: 1rem;
+}
+
+h1 {
+    color: #fafafa;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    padding-bottom: 0.35rem;
+    border-bottom: 2px solid #c9192e;
+}
+
+h2, h3 {
+    letter-spacing: -0.025em;
+}
+
+[data-testid="stCaptionContainer"] {
+    color: var(--lab-muted);
+    line-height: 1.4;
+}
+
+[data-testid="stSidebar"] {
+    background: #100e12;
+    border-right: 1px solid #46212a;
+}
+
+[data-testid="stSidebar"] h2 {
+    color: #ff7480;
+}
+
+[data-testid="stSidebar"] [data-testid="stText"] {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: 0.85rem;
+}
+
+[data-testid="stForm"] {
+    background: linear-gradient(145deg, #19151b, #111115);
+    border: 1px solid #4b2630;
+    border-radius: 14px;
+    padding: 1rem;
+    box-shadow: 0 8px 24px #00000026;
+}
+
+[data-testid="stTextArea"] textarea,
+[data-testid="stNumberInput"] input {
+    background: #0d0d12;
+    color: #f4f4f7;
+    caret-color: var(--lab-accent);
+}
+
+[data-testid="stTextArea"] textarea:focus,
+[data-testid="stNumberInput"] input:focus {
+    box-shadow: inset 0 0 0 1px var(--lab-accent);
+}
+
+[data-testid="stBaseButton-primary"],
+[data-testid="stBaseButton-primaryFormSubmit"] {
+    background: #c9192e;
+    border-color: #ed3348;
+    color: #ffffff;
+    border-radius: 10px;
+    font-weight: 650;
+    box-shadow: 0 4px 18px #c9192e26;
+}
+
+[data-testid="stBaseButton-primary"]:hover:not(:disabled),
+[data-testid="stBaseButton-primaryFormSubmit"]:hover:not(:disabled) {
+    background: #e02038;
+    border-color: #ff7480;
+    color: #ffffff;
+}
+
+[data-testid="stBaseButton-secondary"] {
+    background: #191116;
+    border: 1px solid #8a3341;
+    border-radius: 10px;
+    color: #ffb4bc;
+}
+
+[data-testid="stBaseButton-secondary"]:hover {
+    background: #32151e;
+    border-color: var(--lab-accent);
+    color: #ffffff;
+}
+
+button:focus-visible, summary:focus-visible {
+    outline: 2px solid #ff8a95;
+    outline-offset: 3px;
+}
+
+[data-testid="stMetric"] {
+    background: #15151b;
+    border: 1px solid var(--lab-border);
+    border-top: 2px solid #c9192e;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+[data-testid="stMetricValue"] {
+    color: #ff7480;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.8rem;
+}
+
+[data-testid="stExpander"] {
+    background: #111115;
+    border-radius: 12px;
+}
+
+[data-testid="stJson"] {
+    padding: 0.6rem;
+    border: 1px solid #46212a;
+    border-radius: 12px;
+    background: #101014;
+    overflow-x: auto;
+}
+
+/* Keep long answers, JSON, study material, and profile details inside one panel. */
+.st-key-lab_output, .st-key-stream_lab_output, .st-key-profiles_output {
+    background: #111115;
+    border-color: #3c2830 !important;
+    border-radius: 14px;
+    scrollbar-color: #7a3443 #111115;
+    scrollbar-width: thin;
+}
+
+.st-key-lab_output > div, .st-key-stream_lab_output > div, .st-key-profiles_output > div {
+    gap: 0.7rem;
+}
+
+[data-testid="stVerticalBlock"] {
+    gap: 0.8rem;
+}
+
+[data-testid="stRadio"] [role="radiogroup"] {
+    gap: 0.35rem 0.85rem;
+}
+
+[data-testid="stPopoverBody"] {
+    border: 1px solid #65313e;
+    border-radius: 12px;
+}
+
+[data-testid="stCode"] pre {
+    font-size: 0.78rem;
+}
+
+@media (max-width: 1100px) {
+    [data-testid="stMainBlockContainer"] {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+@media (max-width: 640px) {
+    [data-testid="stMainBlockContainer"] {
+        padding-top: 3.75rem;
+    }
+
+    [data-testid="stForm"] {
+        padding: 1rem;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+    }
+
+    .st-key-lab_output, .st-key-stream_lab_output, .st-key-profiles_output {
+        max-height: 65vh;
+    }
+}
