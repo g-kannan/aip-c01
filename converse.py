@@ -20,7 +20,10 @@ def load_settings(required: tuple[str, ...] = ("AWS_PROFILE", "AWS_REGION", "BED
     values = dotenv_values(Path(__file__).with_name(".env"), interpolate=False)
     settings = {
         name: (values.get(name) or "").strip()
-        for name in ("AWS_PROFILE", "AWS_REGION", "BEDROCK_MODEL_ID", "GATEWAY_URL", "GATEWAY_INVOKE_ARN")
+        for name in (
+            "AWS_PROFILE", "AWS_REGION", "BEDROCK_MODEL_ID", "GATEWAY_URL", "GATEWAY_INVOKE_ARN",
+            "KNOWLEDGE_BASE_ID",
+        )
     }
     missing = [name for name in required if not (settings.get(name) or "").strip()]
     if missing:

@@ -267,3 +267,56 @@ requires `bedrock:InvokeModelWithResponseStream` and a streaming implementation.
 When finished, run `sam delete` from the repository root with your configured stack,
 region, and profile, and review the confirmation. Deleting the stack retains the DynamoDB history table and does not remove
 the local `.env` or caller IAM policy.
+
+## Project 3: Knowledge Base Lab
+
+The **Knowledge Base Lab** page queries an Amazon Bedrock Knowledge Base so you can see the two RAG calls side
+by side. **Retrieve** is vector search only: it returns the nearest chunks with relevance scores and runs no
+model. **RetrieveAndGenerate** retrieves, prompts a model with the chunks, and returns an answer with citations.
+**Compare both** runs the two calls with the same question and filter, and marks the retrieved chunks that the
+answer actually cited.
+
+### Prerequisites
+
+Create a knowledge base in the Bedrock console in the same region as `AWS_REGION`, point its data source at an S3
+location holding the PDFs in `resources/`, and sync it. Both **vector-store** and **managed** knowledge bases are
+supported. They take different retrieval settings (`vectorSearchConfiguration` versus `managedSearchConfiguration`),
+so the page detects the type for you; override it under **Parameters** if detection is not permitted. To use the
+metadata filter, also upload each
+`*.metadata.json` file next to its PDF (same prefix, name `<pdf-name>.metadata.json`) **before** syncing; the
+attributes (`title`, `year`, `first_author`, `topic`, and so on) are only searchable if they were ingested.
+Re-sync after adding or changing metadata files. Creating the knowledge base and its vector store can incur AWS
+charges, so delete them when you finish.
+
+Add the ID to `.env` (or pick it on the page with **Find my knowledge bases**):
+
+```dotenv
+KNOWLEDGE_BASE_ID=ABCDE12345
+```
+
+The caller's IAM identity needs `bedrock:Retrieve` on the knowledge base for Retrieve. RetrieveAndGenerate also
+needs `bedrock:RetrieveAndGenerate` and `bedrock:InvokeModel` on the generation model, and on the inference profile
+and its destination models when you use a profile ID. **Find my knowledge bases** needs
+`bedrock:ListKnowledgeBases`, and automatic type detection needs `bedrock:GetKnowledgeBase`. Generation uses `BEDROCK_MODEL_ID` by default; change it under **Parameters**. For
+RetrieveAndGenerate the page builds the model ARN from the profile ID, using your account ID from
+`sts:GetCallerIdentity`. The generation model must be supported by RetrieveAndGenerate in your region.
+
+### Exercises
+
+Use the four example buttons, then change one thing at a time:
+
+- **Grounded question:** note the scores, which paper ranks first, and which chunks are marked *cited*.
+- **Metadata filter:** `year >= 2024` limits eligible chunks. Clear it and compare the sources and scores.
+- **Bad query:** an off-topic question still returns the nearest chunks, with low scores. Compare the generated
+  answer and its citations with the grounded question.
+- **Empty filter:** `year = 1999` matches nothing. Compare "no results" with "low scores" to see how they differ.
+- **Search type (vector store) / reranking (managed):** try `SEMANTIC` and `HYBRID` on a vector-store knowledge
+  base, or `MANAGED` and `NONE` reranking on a managed one, and compare scores and order. Support depends on the
+  store, so a `ValidationException` is itself informative.
+- Use **Request**, **Raw JSON**, and **Code snippet** to see exactly what is sent and returned.
+
+Run the unit tests (they mock AWS and need no resources) from the repository root:
+
+```powershell
+uv run python -m unittest discover -s tests -v
+```

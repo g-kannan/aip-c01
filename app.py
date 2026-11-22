@@ -9,6 +9,7 @@ from botocore.exceptions import BotoCoreError, ClientError
 from converse import DEFAULT_SYSTEM_PROMPT, build_request, invoke_converse, load_settings, stream_converse
 from inference_profiles import render_profiles_page
 from gateway_page import render_gateway_page
+from knowledge_base_page import render_knowledge_base_page
 
 
 def make_code_snippet(settings: dict, request: dict, streaming: bool = False) -> str:
@@ -230,6 +231,7 @@ def main() -> None:
         st.Page(render_playground, title="Converse Lab", default=True),
         st.Page(render_profiles_page, title="Inference profiles", url_path="inference-profiles"),
         st.Page(render_gateway_page, title="Bedrock Chat Gateway", url_path="bedrock-chat-gateway"),
+        st.Page(render_knowledge_base_page, title="Knowledge Base Lab", url_path="knowledge-base-lab"),
     ])
     page.run()
 
