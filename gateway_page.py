@@ -69,4 +69,6 @@ def render_gateway_page() -> None:
         result = st.session_state["gateway_result"]
         st.subheader("Response")
         st.markdown(result.get("answer") or "No text returned.")
+        if result.get("historySaved") is False:
+            st.warning("The answer was generated, but it could not be saved to conversation history. Check the gateway logs.")
         st.caption(f"Stop reason: {result.get('stopReason', 'unknown')} | Usage: {result.get('usage', {})}")

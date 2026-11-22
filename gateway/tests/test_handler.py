@@ -1,5 +1,6 @@
 import base64
 import importlib.util
+from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
@@ -42,6 +43,23 @@ class HandlerTests(unittest.TestCase):
         self.assertEqual(item["prompt"], {"S": "hi"})
         self.assertEqual(item["answer"], {"S": "Hello"})
         self.assertIn("createdAt", item)
+        self.assertTrue(json.loads(result["body"])["historySaved"])
+
+    def test_history_record_expires_after_retention_period(self):
+        with patch.dict(os.environ, {"HISTORY_RETENTION_DAYS": "7"}):
+            before = int(datetime.now(timezone.utc).timestamp())
+            handler.lambda_handler({"body": '{"prompt":"hi"}'}, self.context)
+            after = int(datetime.now(timezone.utc).timestamp())
+        expires = self.history.put_item.call_args.kwargs["Item"]["expiresAt"]
+        self.assertEqual(list(expires), ["N"])  # TTL attributes must be Numbers
+        self.assertTrue(before + 7 * 86400 <= int(expires["N"]) <= after + 7 * 86400)
+
+    def test_retention_defaults_to_30_days(self):
+        os.environ.pop("HISTORY_RETENTION_DAYS", None)
+        before = int(datetime.now(timezone.utc).timestamp())
+        handler.lambda_handler({"body": '{"prompt":"hi"}'}, self.context)
+        expires = int(self.history.put_item.call_args.kwargs["Item"]["expiresAt"]["N"])
+        self.assertTrue(before + 30 * 86400 <= expires <= before + 30 * 86400 + 60)
 
     def test_invalid_input_never_calls_bedrock(self):
         for body in ("{", "[]", '{"prompt":" "}', json.dumps({"prompt": "x" * 16001})):
@@ -57,12 +75,24 @@ class HandlerTests(unittest.TestCase):
         self.assertEqual(result["statusCode"], 503)
         self.assertNotIn("secret", result["body"])
 
-    def test_history_failure_is_reported(self):
+    def test_history_failure_still_returns_the_answer(self):
         from botocore.exceptions import ClientError
         self.history.put_item.side_effect = ClientError({"Error": {"Code": "AccessDeniedException", "Message": "secret"}}, "PutItem")
         result = handler.lambda_handler({"body": '{"prompt":"hello"}'}, self.context)
-        self.assertEqual(result["statusCode"], 502)
+        body = json.loads(result["body"])
+        self.assertEqual(result["statusCode"], 200)
+        self.assertEqual(body["answer"], "Hello")
+        self.assertFalse(body["historySaved"])
         self.assertNotIn("secret", result["body"])
+
+    def test_invalid_retention_setting_does_not_hide_the_answer(self):
+        for value in ("0", "abc", "-5"):
+            with self.subTest(value=value), patch.dict(os.environ, {"HISTORY_RETENTION_DAYS": value}):
+                self.history.put_item.reset_mock()
+                result = handler.lambda_handler({"body": '{"prompt":"hello"}'}, self.context)
+                self.assertEqual(result["statusCode"], 200)
+                self.assertFalse(json.loads(result["body"])["historySaved"])
+                self.history.put_item.assert_not_called()
 
 
 if __name__ == "__main__":

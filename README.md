@@ -151,16 +151,22 @@ References: [Boto3 Converse API](https://docs.aws.amazon.com/boto3/latest/refere
 
 The **Bedrock Chat Gateway** page sends independent prompts to an IAM-authenticated
 API Gateway HTTP API. A Python Lambda calls Bedrock Converse and returns JSON with
-`answer`, `usage`, and `stopReason`. The page signs requests with the chosen local
+`answer`, `usage`, `stopReason`, and `historySaved`. The page signs requests with the chosen local
 AWS profile. The API URL is supplied on the page after deployment. CORS is restricted
 to a configured origin; CORS does not grant access, and callers also need IAM permission.
 
 The reusable SAM template is in `gateway/template.yaml`. It creates an HTTP API,
 Lambda function, execution role, a DynamoDB history table, and two CloudWatch log groups with 14-day retention.
 For each successful model response, the function saves the prompt, answer, model ID, UTC timestamp,
-and Lambda request ID in DynamoDB. The `ConversationHistoryTable` stack output identifies the table.
+Lambda request ID, and an `expiresAt` time in DynamoDB. The `ConversationHistoryTable` stack output identifies the table.
 Requests remain independent; history is not sent back to Bedrock or displayed in the page.
-If the history write fails, the gateway returns an error after model invocation.
+If the history write fails, the model call has already happened and been billed, so the gateway still
+returns the answer with `"historySaved": false`; the page shows a warning and the failure is logged.
+Records expire after `HistoryRetentionDays` (default 30) through DynamoDB time to live on `expiresAt`.
+TTL deletion is not instant: DynamoDB typically removes expired items within a couple of days, so treat the
+setting as a maximum retention target, not an exact deadline. Records written before TTL was added have no
+`expiresAt` and are kept until you delete them. Point-in-time recovery backups can still hold deleted items
+for up to 35 days.
 The table uses on-demand billing and point-in-time recovery and is retained on stack deletion
 or replacement; delete it separately when its contents are no longer needed. Restrict access to
 the table because it contains prompt and response text. CloudWatch logs contain request IDs and error codes, not prompt text. Account-level Bedrock
@@ -215,6 +221,7 @@ Review and replace every suggested value that does not match your environment:
 - **ModelResourceArns**: the comma-separated profile and destination model ARNs
   from your query. Do not leave either model parameter blank.
 - **AllowedOrigin**: the exact browser origin, for example `http://localhost:8501`.
+- **HistoryRetentionDays**: how long to keep prompt and answer records (default 30).
 - Allow SAM to create the IAM role, save the configuration, and review the
   CloudFormation changeset before confirming it. The named CLI profile must be
   authorized for the target account.

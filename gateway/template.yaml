@@ -13,6 +13,12 @@ Parameters:
     Type: String
     Default: http://localhost:8501
     Description: Single browser origin allowed by CORS
+  HistoryRetentionDays:
+    Type: Number
+    Default: 30
+    MinValue: 1
+    MaxValue: 3650
+    Description: Days to keep prompt and answer records before DynamoDB TTL expires them
 Resources:
   ApiLogGroup:
     Type: AWS::Logs::LogGroup
@@ -54,6 +60,9 @@ Resources:
           KeyType: HASH
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
   ExplainFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -67,6 +76,7 @@ Resources:
         Variables:
           MODEL_ID: !Ref ModelId
           HISTORY_TABLE: !Ref ConversationHistory
+          HISTORY_RETENTION_DAYS: !Ref HistoryRetentionDays
       Policies:
         - Statement:
             - Effect: Allow
@@ -92,5 +102,5 @@ Outputs:
     Description: Grant callers execute-api Invoke on this ARN
     Value: !Sub 'arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${GatewayApi}/prod/POST/explain'
   ConversationHistoryTable:
-    Description: Table containing successful gateway prompt and response records
+    Description: Table containing gateway prompt and response records; items expire after HistoryRetentionDays
     Value: !Ref ConversationHistory

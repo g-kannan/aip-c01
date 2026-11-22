@@ -21,6 +21,14 @@ history_client = boto3.client("dynamodb", config=Config(
 ))
 
 
+def retention_days() -> int:
+    """Days to keep a history record; set by the HistoryRetentionDays stack parameter."""
+    days = int(os.environ.get("HISTORY_RETENTION_DAYS", "30"))
+    if days < 1:
+        raise ValueError("HISTORY_RETENTION_DAYS must be at least 1.")
+    return days
+
+
 def response(status, payload):
     return {"statusCode": status, "headers": {"Content-Type": "application/json"}, "body": json.dumps(payload)}
 
@@ -57,22 +65,30 @@ def lambda_handler(event, context):
         logger.exception("request_id=%s invocation_failed", request_id)
         return response(502, {"error": "The model request failed."})
 
+    # The model call already succeeded and was billed, so a history failure must not hide the answer.
+    history_saved = True
     try:
+        now = datetime.now(timezone.utc)
         history_client.put_item(
             TableName=os.environ["HISTORY_TABLE"],
             Item={
                 "requestId": {"S": request_id},
-                "createdAt": {"S": datetime.now(timezone.utc).isoformat()},
+                "createdAt": {"S": now.isoformat()},
+                # DynamoDB TTL reads this attribute: epoch seconds, stored as a Number.
+                "expiresAt": {"N": str(int(now.timestamp()) + retention_days() * 86400)},
                 "modelId": {"S": os.environ["MODEL_ID"]},
                 "prompt": {"S": prompt.strip()},
                 "answer": {"S": text or ""},
             },
             ConditionExpression="attribute_not_exists(requestId)",
         )
-    except (BotoCoreError, ClientError, KeyError) as error:
+    except (BotoCoreError, ClientError, KeyError, ValueError) as error:
         code = error.response.get("Error", {}).get("Code", "Unknown") if isinstance(error, ClientError) else type(error).__name__
         logger.warning("request_id=%s history_write_failed=%s", request_id, code)
-        return response(502, {"error": "The response could not be saved to conversation history."})
+        history_saved = False
 
-    logger.info("request_id=%s status=success", request_id)
-    return response(200, {"answer": text, "usage": result.get("usage", {}), "stopReason": result.get("stopReason")})
+    logger.info("request_id=%s status=success history_saved=%s", request_id, history_saved)
+    return response(200, {
+        "answer": text, "usage": result.get("usage", {}), "stopReason": result.get("stopReason"),
+        "historySaved": history_saved,
+    })
