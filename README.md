@@ -320,3 +320,36 @@ Run the unit tests (they mock AWS and need no resources) from the repository roo
 ```powershell
 uv run python -m unittest discover -s tests -v
 ```
+
+## Exam demos and slides
+
+Two separate things sit beside the labs above, both mapped to the AIP-C01 exam tasks in
+[`docs/exam-domains.md`](docs/exam-domains.md).
+
+**Slides.** Open [`slides/index.html`](slides/index.html) in a browser to pick a deck. Arrow keys, Space, Home and End
+move between slides; the slide number is kept in the URL, and printing gives one slide per page. Deck `00-exam-map`
+shows which deck and demo covers each exam task. Speaker notes are in each slide's `<aside>`.
+
+**Demos.** A second Streamlit app, `exam_app.py`, holds one page per concept. It uses the same `.env` as the main app
+and runs on its own:
+
+```powershell
+uv run -m streamlit run exam_app.py --server.address 127.0.0.1
+```
+
+| Page | Calls Bedrock | What to try |
+|---|---|---|
+| Guardrails Lab | `Converse`, `ApplyGuardrail`, `CreateGuardrail` | Run the four layers on an injection, PII and a normal question. Create a guardrail in Detect then Enforce mode and test it with `ApplyGuardrail`. |
+| Prompt Lab | `Converse`, Prompt management | Snapshot, approve and promote versions, roll back, run the regression tab, publish a version and call it by ARN. |
+| Chunking Playground | `Converse` (optional) | Shrink the chunk size until the safety exception drops out, then switch to hierarchical. Lower the token budget to see overflow. |
+| Input Cleaner | `Converse` (optional) | Normalize the noisy note, compare regex and model extraction, break the quality gate, compare request bodies per model family. |
+| Resilience Simulator | `Converse` (live fallback tab) | Compare backoff modes, watch a circuit breaker open, run a fallback chain whose first model is invalid, trip each agent guard. |
+| Eval Harness | `Converse` | Run two prompts over the golden dataset, read the scorecard, and see the release gate block a regression. |
+
+Every Bedrock call is billed to your account. The Guardrails Lab and Prompt Lab have buttons that create real AWS
+resources (a guardrail, a prompt and a prompt version); delete them in the console when you finish. The caller needs
+the permissions named at the bottom of each page.
+
+The pure logic lives in `exam_labs/` and is covered by `tests/test_exam_labs.py`, including checks that the request
+bodies the pages send are valid against the installed `boto3` service models. Run all tests with
+`uv run python -m unittest discover -s tests -v`.

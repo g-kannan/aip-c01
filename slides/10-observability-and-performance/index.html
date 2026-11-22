@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Observability — If you cannot see it, you cannot fix it</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=IBM+Plex+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* === FIXED 16:9 STAGE ===
+   Slides are authored at 1920x1080 and scaled as a whole, like slides/01-bedrock-inference.
+   Generated from the deck's shared stylesheet plus one <section> per slide. */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#181a19}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:#181a19}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:#f4f2e9}
+.slide{position:absolute;left:0;top:0;width:1920px;height:1080px;box-sizing:border-box;overflow:hidden;visibility:hidden;opacity:0;pointer-events:none}
+.slide.active{visibility:visible;opacity:1;pointer-events:auto}
+aside{display:none}
+ul,ol{margin:0;padding-left:44px}
+
+/* === SLIDE LOOK (shared deck.css) === */
+/* How AWS SAM works: shared look. Palette matches slides/01-bedrock-inference.
+   Light slide #f4f2e9, dark slide #17241f, accent #e64b26 (fills, large type),
+   #b8330f for small accent text so it holds 4.5:1 on the light tone. */
+
+body { font-family: 'Nunito', Arial, sans-serif; color: #17241f; }
+h1, h2, h3, p { margin: 0; }
+
+section { display: flex; flex-direction: column; padding: 128px 128px 160px; background: #f4f2e9; color: #17241f; }
+section.dark { background: #17241f; color: #f4f2e9; }
+
+/* Type scale: 128 / 72 / 40 / 30 / 26 / 24 */
+h1 { font-family: 'Archivo', Arial, sans-serif; font-size: 128px; font-weight: 900; line-height: 1; letter-spacing: -5px; }
+h2 { font-family: 'Archivo', Arial, sans-serif; font-size: 72px; font-weight: 800; line-height: 1.05; letter-spacing: -2px; }
+h3 { font-family: 'Archivo', Arial, sans-serif; font-size: 40px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; }
+
+.eyebrow { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; margin-bottom: 28px; }
+section.dark .eyebrow { color: #f2906f; }
+.accent { color: #e8512b; }
+.hl { color: #f2906f; }
+.lede { font-size: 36px; line-height: 1.4; color: #526057; }
+section.dark .lede { color: #c5d0c8; }
+.body { font-size: 30px; line-height: 1.4; color: #17241f; }
+section.dark .body { color: #e6eae4; }
+.stripe { width: 240px; height: 12px; background: #e64b26; margin: 48px 0; }
+
+/* Footer: one pinned row */
+.footer { position: absolute; left: 128px; bottom: 56px; width: 1664px; height: 32px; display: flex; justify-content: space-between; }
+.footer p { font-size: 24px; color: #526057; }
+section.dark .footer p { color: #b9c4bc; }
+
+/* Card rows */
+.cards { display: flex; gap: 32px; margin-top: 56px; }
+.card { flex: 1; display: flex; flex-direction: column; gap: 18px; padding: 36px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.card .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.cmd { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #17241f; background: #dce9d4; padding: 12px 16px; }
+section.dark .card { background: #22332b; border-color: #3b4b43; }
+section.dark .card .tag { color: #f2906f; }
+section.dark .card .cmd { background: #2f433a; color: #f4f2e9; }
+
+/* Statement band */
+.band { margin-top: 48px; padding: 28px 36px; background: #17241f; color: #f4f2e9; font-size: 30px; line-height: 1.4; }
+section.dark .band { background: #f4f2e9; color: #17241f; }
+
+/* Pipeline of steps */
+.flow { display: flex; margin-top: 56px; }
+.step { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 32px 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.step .body { font-size: 28px; }
+.step .num { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; }
+.step.final { background: #17241f; border-color: #17241f; color: #f4f2e9; }
+.step.final .num { color: #f2906f; }
+.step.final .cmd { background: #2f433a; color: #f4f2e9; }
+.step.final .body { color: #e6eae4; }
+.arrow { width: 64px; align-self: center; text-align: center; font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 44px; font-weight: 500; color: #e64b26; }
+
+/* Two columns */
+.cols { display: flex; gap: 64px; margin-top: 56px; }
+.col { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+.list { font-size: 32px; line-height: 1.4; color: #17241f; }
+.list li { margin-top: 14px; margin-bottom: 14px; }
+
+/* Terminal block */
+.term { padding: 36px 40px; background: #17241f; }
+.ln { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 26px; line-height: 1.55; color: #f4f2e9; }
+.ln.dim { color: #a9b9ad; }
+.ln.hot { color: #f2906f; }
+.ln.i1 { padding-left: 36px; }
+.ln.i2 { padding-left: 72px; }
+
+/* Tables */
+table { margin-top: 48px; width: 1664px; font-family: 'Nunito', Arial, sans-serif; font-size: 30px; color: #17241f; border-collapse: collapse; }
+th, td { padding: 22px 24px; text-align: left; border-bottom: 1px solid #c8cec3; vertical-align: top; }
+th { color: #526057; font-weight: 700; }
+
+/* Architecture row */
+.arch { display: flex; align-items: center; margin-top: 56px; }
+.node { display: flex; flex-direction: column; gap: 10px; padding: 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.node.wide { flex: 1; }
+.node.core { background: #dce9d4; border-color: #9fbf93; }
+.node .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.node h3 { font-size: 34px; }
+.node .small { font-size: 26px; line-height: 1.35; color: #3b4a42; }
+.arch .col { flex: 1.25; gap: 24px; }
+
+/* === NAVIGATION === */
+.deck-controls{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:9px 15px;background:#17241f;color:#f4f2e9;border:1px solid #617165;border-radius:6px;font:14px 'IBM Plex Mono',monospace;white-space:nowrap;opacity:.35;transition:opacity .2s}
+.deck-controls:hover,.deck-controls:focus-within{opacity:1}
+.deck-controls button{font:inherit;color:inherit;background:none;border:1px solid #617165;border-radius:4px;padding:3px 10px;cursor:pointer}
+.deck-controls button:hover{background:#2f433a}
+
+/* === PRINT: one slide per page === */
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff}
+  .deck-viewport{position:static;overflow:visible}
+  .deck-stage{position:static;width:auto;height:auto;transform:none!important;overflow:visible}
+  .slide{position:relative;visibility:visible;opacity:1;pointer-events:auto;break-after:page;page-break-after:always}
+  .slide:last-child{break-after:auto;page-break-after:auto}
+  .deck-controls{display:none!important}
+}
+
+/* === Additions for the Agentic AI Lens cost decks === */
+.stat { display: flex; flex-direction: column; gap: 8px; padding: 26px 34px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.stat .big { font-family: 'Archivo', Arial, sans-serif; font-size: 84px; font-weight: 900; line-height: 1; letter-spacing: -3px; color: #e64b26; }
+.stat .body { font-size: 26px; line-height: 1.35; }
+section.dark .stat { background: #22332b; border-color: #3b4b43; }
+section.dark table, section.dark th, section.dark td { color: #e6eae4; border-color: #3b4b43; }
+section.dark th { color: #c5d0c8; }
+.rk { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #3b4a42; }
+.rk.hi { color: #b8330f; font-weight: 700; }
+section.dark .rk.hi { color: #f2906f; }
+td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.86em; color: #b8330f; }
+.col.narrow { flex: .7; }
+.cards.tight { gap: 24px; }
+.cards.tight .card { padding: 30px; }
+.cards.tight .body { font-size: 26px; }
+
+/* === Additions for the exam-prep decks === */
+.step.tight{padding:26px 22px}.step.tight .body{font-size:25px}.step.tight h3{font-size:32px}
+.cards.five .card{padding:26px}.cards.five .body{font-size:24px}.cards.five h3{font-size:34px}
+table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
+.codeblock{margin-top:40px}
+</style>
+</head>
+<body>
+<div class="deck-viewport"><main class="deck-stage" id="deckStage">
+<section id="cover" class="slide dark" style="justify-content: center;">
+<p class="eyebrow">AIP-C01 / Tasks 4.2, 4.3 / 10</p>
+<h1>If you cannot <span class="accent">see</span> it,<br>you cannot fix it.</h1>
+<div class="stripe"></div>
+<p class="lede" style="width: 1400px;">What to measure in a GenAI application, how to trace one request end to end, where latency goes, and how to catch drift before users do.</p>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>01 / 09</p></div>
+<aside>GenAI applications fail in ways ordinary monitoring does not show: answers get worse while every health check stays green. This deck separates operational signals, cost signals, quality signals and business signals. Demo: the Eval Harness prints p50, p95, tokens and cost per candidate.</aside>
+</section>
+<section id="s2" class="slide">
+<p class="eyebrow">01 / Four layers</p>
+<h2>Watch four things, not one.</h2>
+<div class="cards tight five"><div class="card"><p class="tag">SERVICE</p><h3>Is it up and fast?</h3><p class="body">Invocations, latency, throttles, client and server errors.</p></div><div class="card"><p class="tag">COST</p><h3>What does it spend?</h3><p class="body">Input and output tokens, cache hits, cost per request.</p></div><div class="card"><p class="tag">QUALITY</p><h3>Is it any good?</h3><p class="body">Eval scores, groundedness, hallucination checks, user feedback.</p></div><div class="card"><p class="tag">BUSINESS</p><h3>Does it help?</h3><p class="body">Task success, escalation rate, resolution time.</p></div></div>
+<div class="band">A green dashboard with <span class="hl">falling quality</span> is the classic GenAI incident.</div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>02 / 09</p></div>
+<aside>Operational dashboards alone miss quality drift. Quality and business signals need explicit measurement: a golden dataset, sampled human review, user thumbs, and downstream outcomes.</aside>
+</section>
+<section id="s3" class="slide">
+<p class="eyebrow">02 / Built-in metrics</p>
+<h2>What Bedrock publishes to CloudWatch.</h2>
+<table class="dense" style="font-size: 26px;"><tr><th style="width: 36%;">Metric</th><th style="width: 64%;">Tells you</th></tr><tr><td><span class="mono">Invocations</span></td><td>Request volume per model</td></tr><tr><td><span class="mono">InvocationLatency</span></td><td>Time per call; alarm on p95, not the average</td></tr><tr><td><span class="mono">InputTokenCount</span>, <span class="mono">OutputTokenCount</span></td><td>Token use, the base of cost</td></tr><tr><td><span class="mono">InvocationThrottles</span></td><td>You are hitting quota or rate limits</td></tr><tr><td><span class="mono">InvocationClientErrors</span>, <span class="mono">InvocationServerErrors</span></td><td>Your bug versus theirs</td></tr></table>
+<div class="band">Namespace <span class="mono">AWS/Bedrock</span>, dimension <span class="mono">ModelId</span>. Verify the current list in the CloudWatch docs.</div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>03 / 09</p></div>
+<aside>Averages hide the slow tail; users complain about p95 and p99. Metric names and dimensions can change as the service evolves, so confirm them in the Bedrock monitoring documentation. Streaming adds time-to-first-token, which you should also track.</aside>
+</section>
+<section id="s4" class="slide">
+<p class="eyebrow">03 / Logs</p>
+<h2>Model invocation logging.</h2>
+<div class="cards"><div class="card"><p class="tag">WHAT</p><h3>Request and response</h3><p class="body">Prompts, completions, token counts and metadata for each call.</p></div><div class="card"><p class="tag">WHERE</p><h3>CloudWatch Logs or S3</h3><p class="body">Off by default. Choose the destination, encryption and retention.</p></div><div class="card"><p class="tag">CAUTION</p><h3>It is sensitive data</h3><p class="body">Logs can hold PII. Mask before the call, restrict access, expire them.</p></div></div>
+<div class="band">For your own app logs, write <span class="hl">structured JSON</span> so metric filters can count failures by type.</div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>04 / 09</p></div>
+<aside>A structured record such as release, test_case, pass, failure_type and score lets a metric filter and alarm detect new failure types. Metric filters create metrics from new events; they do not backfill.</aside>
+</section>
+<section id="s5" class="slide">
+<p class="eyebrow">04 / Trace</p>
+<h2>Follow one request through every hop.</h2>
+<div class="flow"><div class="step tight"><p class="num">1 / EDGE</p><h3>API Gateway</h3><p class="body">Assign a correlation ID; enable tracing.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">2 / APP</p><h3>Lambda</h3><p class="body">Segments for retrieval, prompt build, model call, validation.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">3 / MODEL</p><h3>Bedrock call</h3><p class="body">A subsegment with model ID, tokens, latency, retries.</p></div><div class="arrow">&rarr;</div><div class="step final tight"><p class="num">4 / TOOLS</p><h3>Agent steps</h3><p class="body">Trace each tool call and the reasoning that chose it.</p></div></div>
+<div class="band">Agent <span class="hl">trace events</span> show which source and tool produced an answer, so keep them with the case record.</div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>05 / 09</p></div>
+<aside>X-Ray gives end-to-end tracing across API Gateway, Lambda and downstream calls, which isolates where latency and retries occur. For Bedrock Agents, enabling the trace on InvokeAgent returns reasoning and tool-selection events useful for audit.</aside>
+</section>
+<section id="s6" class="slide">
+<p class="eyebrow">05 / Latency</p>
+<h2>Where does the time go?</h2>
+<table class="dense" style="font-size: 26px;"><tr><th style="width: 34%;">Piece</th><th style="width: 66%;">Lever</th></tr><tr><td>Time to first token</td><td>Stream the response; choose a smaller model; shorter prompt</td></tr><tr><td>Retrieval</td><td>Right-size k, filter by metadata, tune the index, run in parallel with other work</td></tr><tr><td>Model generation</td><td>Cap output tokens; smaller or faster model; latency-optimized inference where supported</td></tr><tr><td>Waiting on throttles</td><td>Retries cost time: raise quota, spread across Regions, provisioned throughput</td></tr><tr><td>Repeated work</td><td>Precompute, cache prompt prefixes, cache whole answers where safe</td></tr></table>
+<div class="band">Measure first. <span class="hl">Then</span> optimize the biggest slice.</div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>06 / 09</p></div>
+<aside>Streaming does not reduce total time but it improves perceived latency. Some models and profiles support an optimized-latency setting: check support with GetFoundationModel. Parallelism applies to independent steps such as several retrievals or tool calls.</aside>
+</section>
+<section id="s7" class="slide">
+<p class="eyebrow">06 / Cost</p>
+<h2>Attribute spend to something.</h2>
+<div class="cards"><div class="card"><p class="tag">TAG</p><h3>Application inference profiles</h3><p class="body">Create one per assistant or tenant, with cost-allocation tags, then read usage and cost per profile.</p></div><div class="card"><p class="tag">RATIO</p><h3>Cost per 1,000 successes</h3><p class="body">Tokens times price, divided by successful answers. Failed calls still cost.</p></div><div class="card"><p class="tag">ALERT</p><h3>Budget alarms</h3><p class="body">Alarm on a token spike so a loop or a bug does not run all weekend.</p></div></div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>07 / 09</p></div>
+<aside>Application inference profiles wrap a model or cross-Region profile so usage can be attributed. Slides 03 and 04 cover the levers that reduce the spend itself.</aside>
+</section>
+<section id="s8" class="slide">
+<p class="eyebrow">07 / Drift</p>
+<h2>Catch quality drift before users do.</h2>
+<div class="flow"><div class="step tight"><p class="num">1 / BASELINE</p><h3>Golden set</h3><p class="body">A fixed dataset with expected behaviour, versioned.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">2 / REPLAY</p><h3>On a schedule</h3><p class="body">Run it nightly and on every prompt or model change.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">3 / DIFF</p><h3>Compare outputs</h3><p class="body">Pass rate, score, and output diffs against the baseline.</p></div><div class="arrow">&rarr;</div><div class="step final tight"><p class="num">4 / ALARM</p><h3>Threshold</h3><p class="body">Page the owner when a metric crosses the line.</p></div></div>
+<div class="band">Also watch retrieval health: <span class="hl">empty-result rate</span>, top score, index freshness.</div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>08 / 09</p></div>
+<aside>Drift sources: a model version change, a prompt edit, new data, a stale index, or user behaviour changing. The Eval Harness in exam_app.py is a small version of this loop.</aside>
+</section>
+<section id="wrap" class="slide dark">
+<p class="eyebrow">Recap</p>
+<h2>Measure the right things.</h2>
+<div class="cards"><div class="card"><p class="tag">SIGNALS</p><h3>Four layers</h3><p class="body">Service, cost, quality, business.</p></div><div class="card"><p class="tag">TRACE</p><h3>End to end</h3><p class="body">One correlation ID from the edge to the tool.</p></div><div class="card"><p class="tag">REPLAY</p><h3>Golden set</h3><p class="body">Catch drift with fixed cases and alarms.</p></div></div>
+<div class="band">Try it: the scorecard in the <span class="hl">Eval Harness</span>.</div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>09 / 09</p></div>
+<aside>Close by asking: if answer quality dropped tomorrow, which chart would tell you first?</aside>
+</section>
+</main></div>
+<nav class="deck-controls" aria-label="Slide navigation"><button id="prev" aria-label="Previous slide">←</button><span id="counter" aria-live="polite"></span><button id="next" aria-label="Next slide">→</button></nav>
+<script>
+/* Arrow keys, PageUp/PageDown, Space, Home and End move between slides; the slide number is kept in the URL hash. */
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var stage = document.getElementById('deckStage');
+  var counter = document.getElementById('counter');
+  var current = 0;
+  function fit() {
+    var f = Math.min(innerWidth / 1920, innerHeight / 1080);
+    stage.style.transform = 'translate(' + (innerWidth - 1920 * f) / 2 + 'px,' + (innerHeight - 1080 * f) / 2 + 'px) scale(' + f + ')';
+  }
+  function show(n) {
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach(function (s, k) {
+      s.classList.toggle('active', k === current);
+      s.setAttribute('aria-hidden', String(k !== current));
+    });
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    try { history.replaceState(null, '', '#' + (current + 1)); } catch (e) {}
+  }
+  document.getElementById('prev').onclick = function () { show(current - 1); };
+  document.getElementById('next').onclick = function () { show(current + 1); };
+  addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); show(current + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); show(current - 1); }
+    else if (k === 'Home') show(0);
+    else if (k === 'End') show(slides.length - 1);
+  });
+  addEventListener('resize', fit);
+  fit();
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>

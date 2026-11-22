@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AIP-C01 exam map — Domains, tasks and where to learn them</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=IBM+Plex+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* === FIXED 16:9 STAGE ===
+   Slides are authored at 1920x1080 and scaled as a whole, like slides/01-bedrock-inference.
+   Generated from the deck's shared stylesheet plus one <section> per slide. */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#181a19}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:#181a19}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:#f4f2e9}
+.slide{position:absolute;left:0;top:0;width:1920px;height:1080px;box-sizing:border-box;overflow:hidden;visibility:hidden;opacity:0;pointer-events:none}
+.slide.active{visibility:visible;opacity:1;pointer-events:auto}
+aside{display:none}
+ul,ol{margin:0;padding-left:44px}
+
+/* === SLIDE LOOK (shared deck.css) === */
+/* How AWS SAM works: shared look. Palette matches slides/01-bedrock-inference.
+   Light slide #f4f2e9, dark slide #17241f, accent #e64b26 (fills, large type),
+   #b8330f for small accent text so it holds 4.5:1 on the light tone. */
+
+body { font-family: 'Nunito', Arial, sans-serif; color: #17241f; }
+h1, h2, h3, p { margin: 0; }
+
+section { display: flex; flex-direction: column; padding: 128px 128px 160px; background: #f4f2e9; color: #17241f; }
+section.dark { background: #17241f; color: #f4f2e9; }
+
+/* Type scale: 128 / 72 / 40 / 30 / 26 / 24 */
+h1 { font-family: 'Archivo', Arial, sans-serif; font-size: 128px; font-weight: 900; line-height: 1; letter-spacing: -5px; }
+h2 { font-family: 'Archivo', Arial, sans-serif; font-size: 72px; font-weight: 800; line-height: 1.05; letter-spacing: -2px; }
+h3 { font-family: 'Archivo', Arial, sans-serif; font-size: 40px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; }
+
+.eyebrow { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; margin-bottom: 28px; }
+section.dark .eyebrow { color: #f2906f; }
+.accent { color: #e8512b; }
+.hl { color: #f2906f; }
+.lede { font-size: 36px; line-height: 1.4; color: #526057; }
+section.dark .lede { color: #c5d0c8; }
+.body { font-size: 30px; line-height: 1.4; color: #17241f; }
+section.dark .body { color: #e6eae4; }
+.stripe { width: 240px; height: 12px; background: #e64b26; margin: 48px 0; }
+
+/* Footer: one pinned row */
+.footer { position: absolute; left: 128px; bottom: 56px; width: 1664px; height: 32px; display: flex; justify-content: space-between; }
+.footer p { font-size: 24px; color: #526057; }
+section.dark .footer p { color: #b9c4bc; }
+
+/* Card rows */
+.cards { display: flex; gap: 32px; margin-top: 56px; }
+.card { flex: 1; display: flex; flex-direction: column; gap: 18px; padding: 36px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.card .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.cmd { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #17241f; background: #dce9d4; padding: 12px 16px; }
+section.dark .card { background: #22332b; border-color: #3b4b43; }
+section.dark .card .tag { color: #f2906f; }
+section.dark .card .cmd { background: #2f433a; color: #f4f2e9; }
+
+/* Statement band */
+.band { margin-top: 48px; padding: 28px 36px; background: #17241f; color: #f4f2e9; font-size: 30px; line-height: 1.4; }
+section.dark .band { background: #f4f2e9; color: #17241f; }
+
+/* Pipeline of steps */
+.flow { display: flex; margin-top: 56px; }
+.step { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 32px 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.step .body { font-size: 28px; }
+.step .num { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; }
+.step.final { background: #17241f; border-color: #17241f; color: #f4f2e9; }
+.step.final .num { color: #f2906f; }
+.step.final .cmd { background: #2f433a; color: #f4f2e9; }
+.step.final .body { color: #e6eae4; }
+.arrow { width: 64px; align-self: center; text-align: center; font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 44px; font-weight: 500; color: #e64b26; }
+
+/* Two columns */
+.cols { display: flex; gap: 64px; margin-top: 56px; }
+.col { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+.list { font-size: 32px; line-height: 1.4; color: #17241f; }
+.list li { margin-top: 14px; margin-bottom: 14px; }
+
+/* Terminal block */
+.term { padding: 36px 40px; background: #17241f; }
+.ln { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 26px; line-height: 1.55; color: #f4f2e9; }
+.ln.dim { color: #a9b9ad; }
+.ln.hot { color: #f2906f; }
+.ln.i1 { padding-left: 36px; }
+.ln.i2 { padding-left: 72px; }
+
+/* Tables */
+table { margin-top: 48px; width: 1664px; font-family: 'Nunito', Arial, sans-serif; font-size: 30px; color: #17241f; border-collapse: collapse; }
+th, td { padding: 22px 24px; text-align: left; border-bottom: 1px solid #c8cec3; vertical-align: top; }
+th { color: #526057; font-weight: 700; }
+
+/* Architecture row */
+.arch { display: flex; align-items: center; margin-top: 56px; }
+.node { display: flex; flex-direction: column; gap: 10px; padding: 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.node.wide { flex: 1; }
+.node.core { background: #dce9d4; border-color: #9fbf93; }
+.node .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.node h3 { font-size: 34px; }
+.node .small { font-size: 26px; line-height: 1.35; color: #3b4a42; }
+.arch .col { flex: 1.25; gap: 24px; }
+
+/* === NAVIGATION === */
+.deck-controls{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:9px 15px;background:#17241f;color:#f4f2e9;border:1px solid #617165;border-radius:6px;font:14px 'IBM Plex Mono',monospace;white-space:nowrap;opacity:.35;transition:opacity .2s}
+.deck-controls:hover,.deck-controls:focus-within{opacity:1}
+.deck-controls button{font:inherit;color:inherit;background:none;border:1px solid #617165;border-radius:4px;padding:3px 10px;cursor:pointer}
+.deck-controls button:hover{background:#2f433a}
+
+/* === PRINT: one slide per page === */
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff}
+  .deck-viewport{position:static;overflow:visible}
+  .deck-stage{position:static;width:auto;height:auto;transform:none!important;overflow:visible}
+  .slide{position:relative;visibility:visible;opacity:1;pointer-events:auto;break-after:page;page-break-after:always}
+  .slide:last-child{break-after:auto;page-break-after:auto}
+  .deck-controls{display:none!important}
+}
+
+/* === Additions for the Agentic AI Lens cost decks === */
+.stat { display: flex; flex-direction: column; gap: 8px; padding: 26px 34px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.stat .big { font-family: 'Archivo', Arial, sans-serif; font-size: 84px; font-weight: 900; line-height: 1; letter-spacing: -3px; color: #e64b26; }
+.stat .body { font-size: 26px; line-height: 1.35; }
+section.dark .stat { background: #22332b; border-color: #3b4b43; }
+section.dark table, section.dark th, section.dark td { color: #e6eae4; border-color: #3b4b43; }
+section.dark th { color: #c5d0c8; }
+.rk { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #3b4a42; }
+.rk.hi { color: #b8330f; font-weight: 700; }
+section.dark .rk.hi { color: #f2906f; }
+td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.86em; color: #b8330f; }
+.col.narrow { flex: .7; }
+.cards.tight { gap: 24px; }
+.cards.tight .card { padding: 30px; }
+.cards.tight .body { font-size: 26px; }
+
+/* === Additions for the exam-prep decks === */
+.step.tight{padding:26px 22px}.step.tight .body{font-size:25px}.step.tight h3{font-size:32px}
+.cards.five .card{padding:26px}.cards.five .body{font-size:24px}.cards.five h3{font-size:34px}
+table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
+.codeblock{margin-top:40px}
+</style>
+</head>
+<body>
+<div class="deck-viewport"><main class="deck-stage" id="deckStage">
+<section id="cover" class="slide dark" style="justify-content: center;">
+<p class="eyebrow">AIP-C01 / Exam map / 00</p>
+<h1>Five domains.<br>One <span class="accent">map</span>.</h1>
+<div class="stripe"></div>
+<p class="lede" style="width: 1400px;">Every exam task, the slide deck that explains it, and the demo that lets you try it. Coverage is tracked in docs/exam-domains.md.</p>
+<div class="footer"><p>AIP-C01 · Exam map</p><p>01 / 08</p></div>
+<aside>Use this deck to plan study. Each task row names the decks (slides/NN) and the demos. Demos live in two apps: app.py (Converse, Gateway, Knowledge Base) and exam_app.py (the exam demos).</aside>
+</section>
+<section id="s2" class="slide">
+<p class="eyebrow">01 / Domains</p>
+<h2>Where the marks are.</h2>
+<div class="cards tight five"><div class="card"><p class="tag">31%</p><h3>Domain 1</h3><p class="body">Foundation model integration, data, compliance</p></div><div class="card"><p class="tag">26%</p><h3>Domain 2</h3><p class="body">Implementation and integration</p></div><div class="card"><p class="tag">20%</p><h3>Domain 3</h3><p class="body">Safety, security, governance</p></div><div class="card"><p class="tag">12%</p><h3>Domain 4</h3><p class="body">Operational efficiency</p></div><div class="card"><p class="tag">11%</p><h3>Domain 5</h3><p class="body">Testing and troubleshooting</p></div></div>
+<div class="band">Domains 1 and 2 are <span class="hl">57 percent</span> of the exam. Domain 3 is the biggest gap to close.</div>
+<div class="footer"><p>AIP-C01 · Exam map</p><p>02 / 08</p></div>
+<aside>Weights are from the official exam guide. Domain 1 spans six tasks and carries the most weight; Domain 3 needs the most new learning in this repository.</aside>
+</section>
+<section id="s3" class="slide">
+<p class="eyebrow">02 / Domain 1</p>
+<h2>Foundation models, data, retrieval, prompts.</h2>
+<table class="dense" style="font-size: 26px;"><tr><th style="width: 48%;">Task</th><th style="width: 22%;">Slides</th><th style="width: 30%;">Demo</th></tr><tr><td>1.1 Design GenAI solutions</td><td>13</td><td>-</td></tr><tr><td>1.2 Select and configure models</td><td>01, 04, 09, 13</td><td>Converse Lab, Resilience</td></tr><tr><td>1.3 Validate and process data</td><td>08</td><td>Input Cleaner</td></tr><tr><td>1.4 Vector stores</td><td>08</td><td>Knowledge Base Lab</td></tr><tr><td>1.5 Retrieval design</td><td>08</td><td>KB Lab, Chunking Playground</td></tr><tr><td>1.6 Prompts and governance</td><td>12</td><td>Prompt Lab</td></tr></table>
+<div class="footer"><p>AIP-C01 · Exam map</p><p>03 / 08</p></div>
+<aside>1.1 has no demo: it is design reasoning. 1.2 spans the original inference-API deck, the tier deck and the new resilience deck.</aside>
+</section>
+<section id="s4" class="slide">
+<p class="eyebrow">03 / Domain 2</p>
+<h2>Agents, deployment, integration, APIs.</h2>
+<table class="dense" style="font-size: 26px;"><tr><th style="width: 48%;">Task</th><th style="width: 22%;">Slides</th><th style="width: 30%;">Demo</th></tr><tr><td>2.1 Agents and tools</td><td>03, 09</td><td>Resilience (agent guards)</td></tr><tr><td>2.2 Deployment strategies</td><td>13, 04</td><td>-</td></tr><tr><td>2.3 Enterprise integration</td><td>02, 13</td><td>Bedrock Chat Gateway</td></tr><tr><td>2.4 Foundation-model APIs</td><td>01, 09</td><td>Converse Lab, Resilience</td></tr><tr><td>2.5 Application patterns</td><td>02, 12, 13</td><td>Gateway, Prompt Lab</td></tr></table>
+<div class="footer"><p>AIP-C01 · Exam map</p><p>04 / 08</p></div>
+<aside>Agent memory, multi-agent coordination and MCP server building are covered conceptually only; see the open items slide.</aside>
+</section>
+<section id="s5" class="slide">
+<p class="eyebrow">04 / Domains 3 and 4</p>
+<h2>Safety, governance, efficiency, monitoring.</h2>
+<table class="dense" style="font-size: 26px;"><tr><th style="width: 48%;">Task</th><th style="width: 22%;">Slides</th><th style="width: 30%;">Demo</th></tr><tr><td>3.1 Safety controls</td><td>06</td><td>Guardrails Lab</td></tr><tr><td>3.2 Data security and privacy</td><td>07</td><td>Guardrails Lab (PII)</td></tr><tr><td>3.3 Governance and compliance</td><td>07</td><td>Prompt Lab (audit log)</td></tr><tr><td>3.4 Responsible AI</td><td>05, 07</td><td>KB Lab (citations)</td></tr><tr><td>4.1 Cost and resources</td><td>03, 04</td><td>Eval Harness (cost)</td></tr><tr><td>4.2 Performance</td><td>10</td><td>Converse Lab (latency)</td></tr><tr><td>4.3 Monitoring</td><td>10</td><td>Eval Harness</td></tr></table>
+<div class="footer"><p>AIP-C01 · Exam map</p><p>05 / 08</p></div>
+<aside>Domain 4 is only 12 percent but its topics (tokens, caching, latency) recur in scenario questions across other domains.</aside>
+</section>
+<section id="s6" class="slide">
+<p class="eyebrow">05 / Domain 5</p>
+<h2>Evaluate and troubleshoot.</h2>
+<table class="dense" style="font-size: 26px;"><tr><th style="width: 48%;">Task</th><th style="width: 22%;">Slides</th><th style="width: 30%;">Demo</th></tr><tr><td>5.1 Evaluate GenAI systems</td><td>05, 11</td><td>Eval Harness</td></tr><tr><td>5.2 Troubleshoot GenAI applications</td><td>11</td><td>Chunking Playground, KB Lab</td></tr></table>
+<div class="band">Open items: <span class="hl">agent memory and MCP</span>, fairness testing, and live AWS drills on VPC endpoints.</div>
+<div class="footer"><p>AIP-C01 · Exam map</p><p>06 / 08</p></div>
+<aside>Honest gaps: nothing here builds a running agent with memory or an MCP server, and fairness evaluation is covered by metric definitions, not by a runnable test. The exam-domains file lists these under each task.</aside>
+</section>
+<section id="s7" class="slide">
+<p class="eyebrow">06 / How to use it</p>
+<h2>A loop for each task.</h2>
+<div class="cols"><div class="col"><h3>Learn</h3><ul class="list" style="font-size: 30px;"><li>Read the slide deck; use the notes</li><li>Note the exam trap on each slide</li><li>Check current AWS docs for any specifics</li></ul></div><div class="col"><h3>Prove</h3><ul class="list" style="font-size: 30px;"><li>Run the demo and change one setting</li><li>Explain the result out loud</li><li>Tick the task in docs/exam-domains.md</li></ul></div></div>
+<div class="band">Tick a task only when you can <span class="hl">explain it and have seen it work</span>.</div>
+<div class="footer"><p>AIP-C01 · Exam map</p><p>07 / 08</p></div>
+<aside>The checklist file is the single index. Keep it honest: a task with slides but no demo is partly ticked.</aside>
+</section>
+<section id="wrap" class="slide dark">
+<p class="eyebrow">Recap</p>
+<h2>Start with the biggest gap.</h2>
+<div class="cards"><div class="card"><p class="tag">1</p><h3>Domain 3</h3><p class="body">Slides 06 and 07, then the Guardrails Lab.</p></div><div class="card"><p class="tag">2</p><h3>Domain 1</h3><p class="body">Slides 08 and 12, then the Chunking Playground and Prompt Lab.</p></div><div class="card"><p class="tag">3</p><h3>Domains 2, 4, 5</h3><p class="body">Slides 09, 10 and 11, then the Resilience Simulator and Eval Harness.</p></div></div>
+<div class="band">Slides: <span class="hl">slides/index.html</span>. Demos: <span class="mono">uv run -m streamlit run exam_app.py</span>.</div>
+<div class="footer"><p>AIP-C01 · Exam map</p><p>08 / 08</p></div>
+<aside>A suggested order, weighted by exam share and by how little was covered before.</aside>
+</section>
+</main></div>
+<nav class="deck-controls" aria-label="Slide navigation"><button id="prev" aria-label="Previous slide">←</button><span id="counter" aria-live="polite"></span><button id="next" aria-label="Next slide">→</button></nav>
+<script>
+/* Arrow keys, PageUp/PageDown, Space, Home and End move between slides; the slide number is kept in the URL hash. */
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var stage = document.getElementById('deckStage');
+  var counter = document.getElementById('counter');
+  var current = 0;
+  function fit() {
+    var f = Math.min(innerWidth / 1920, innerHeight / 1080);
+    stage.style.transform = 'translate(' + (innerWidth - 1920 * f) / 2 + 'px,' + (innerHeight - 1080 * f) / 2 + 'px) scale(' + f + ')';
+  }
+  function show(n) {
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach(function (s, k) {
+      s.classList.toggle('active', k === current);
+      s.setAttribute('aria-hidden', String(k !== current));
+    });
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    try { history.replaceState(null, '', '#' + (current + 1)); } catch (e) {}
+  }
+  document.getElementById('prev').onclick = function () { show(current - 1); };
+  document.getElementById('next').onclick = function () { show(current + 1); };
+  addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); show(current + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); show(current - 1); }
+    else if (k === 'Home') show(0);
+    else if (k === 'End') show(slides.length - 1);
+  });
+  addEventListener('resize', fit);
+  fit();
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>

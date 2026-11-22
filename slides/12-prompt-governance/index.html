@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prompt governance — A prompt is code</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=IBM+Plex+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* === FIXED 16:9 STAGE ===
+   Slides are authored at 1920x1080 and scaled as a whole, like slides/01-bedrock-inference.
+   Generated from the deck's shared stylesheet plus one <section> per slide. */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#181a19}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:#181a19}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:#f4f2e9}
+.slide{position:absolute;left:0;top:0;width:1920px;height:1080px;box-sizing:border-box;overflow:hidden;visibility:hidden;opacity:0;pointer-events:none}
+.slide.active{visibility:visible;opacity:1;pointer-events:auto}
+aside{display:none}
+ul,ol{margin:0;padding-left:44px}
+
+/* === SLIDE LOOK (shared deck.css) === */
+/* How AWS SAM works: shared look. Palette matches slides/01-bedrock-inference.
+   Light slide #f4f2e9, dark slide #17241f, accent #e64b26 (fills, large type),
+   #b8330f for small accent text so it holds 4.5:1 on the light tone. */
+
+body { font-family: 'Nunito', Arial, sans-serif; color: #17241f; }
+h1, h2, h3, p { margin: 0; }
+
+section { display: flex; flex-direction: column; padding: 128px 128px 160px; background: #f4f2e9; color: #17241f; }
+section.dark { background: #17241f; color: #f4f2e9; }
+
+/* Type scale: 128 / 72 / 40 / 30 / 26 / 24 */
+h1 { font-family: 'Archivo', Arial, sans-serif; font-size: 128px; font-weight: 900; line-height: 1; letter-spacing: -5px; }
+h2 { font-family: 'Archivo', Arial, sans-serif; font-size: 72px; font-weight: 800; line-height: 1.05; letter-spacing: -2px; }
+h3 { font-family: 'Archivo', Arial, sans-serif; font-size: 40px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; }
+
+.eyebrow { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; margin-bottom: 28px; }
+section.dark .eyebrow { color: #f2906f; }
+.accent { color: #e8512b; }
+.hl { color: #f2906f; }
+.lede { font-size: 36px; line-height: 1.4; color: #526057; }
+section.dark .lede { color: #c5d0c8; }
+.body { font-size: 30px; line-height: 1.4; color: #17241f; }
+section.dark .body { color: #e6eae4; }
+.stripe { width: 240px; height: 12px; background: #e64b26; margin: 48px 0; }
+
+/* Footer: one pinned row */
+.footer { position: absolute; left: 128px; bottom: 56px; width: 1664px; height: 32px; display: flex; justify-content: space-between; }
+.footer p { font-size: 24px; color: #526057; }
+section.dark .footer p { color: #b9c4bc; }
+
+/* Card rows */
+.cards { display: flex; gap: 32px; margin-top: 56px; }
+.card { flex: 1; display: flex; flex-direction: column; gap: 18px; padding: 36px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.card .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.cmd { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #17241f; background: #dce9d4; padding: 12px 16px; }
+section.dark .card { background: #22332b; border-color: #3b4b43; }
+section.dark .card .tag { color: #f2906f; }
+section.dark .card .cmd { background: #2f433a; color: #f4f2e9; }
+
+/* Statement band */
+.band { margin-top: 48px; padding: 28px 36px; background: #17241f; color: #f4f2e9; font-size: 30px; line-height: 1.4; }
+section.dark .band { background: #f4f2e9; color: #17241f; }
+
+/* Pipeline of steps */
+.flow { display: flex; margin-top: 56px; }
+.step { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 32px 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.step .body { font-size: 28px; }
+.step .num { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; }
+.step.final { background: #17241f; border-color: #17241f; color: #f4f2e9; }
+.step.final .num { color: #f2906f; }
+.step.final .cmd { background: #2f433a; color: #f4f2e9; }
+.step.final .body { color: #e6eae4; }
+.arrow { width: 64px; align-self: center; text-align: center; font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 44px; font-weight: 500; color: #e64b26; }
+
+/* Two columns */
+.cols { display: flex; gap: 64px; margin-top: 56px; }
+.col { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+.list { font-size: 32px; line-height: 1.4; color: #17241f; }
+.list li { margin-top: 14px; margin-bottom: 14px; }
+
+/* Terminal block */
+.term { padding: 36px 40px; background: #17241f; }
+.ln { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 26px; line-height: 1.55; color: #f4f2e9; }
+.ln.dim { color: #a9b9ad; }
+.ln.hot { color: #f2906f; }
+.ln.i1 { padding-left: 36px; }
+.ln.i2 { padding-left: 72px; }
+
+/* Tables */
+table { margin-top: 48px; width: 1664px; font-family: 'Nunito', Arial, sans-serif; font-size: 30px; color: #17241f; border-collapse: collapse; }
+th, td { padding: 22px 24px; text-align: left; border-bottom: 1px solid #c8cec3; vertical-align: top; }
+th { color: #526057; font-weight: 700; }
+
+/* Architecture row */
+.arch { display: flex; align-items: center; margin-top: 56px; }
+.node { display: flex; flex-direction: column; gap: 10px; padding: 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.node.wide { flex: 1; }
+.node.core { background: #dce9d4; border-color: #9fbf93; }
+.node .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.node h3 { font-size: 34px; }
+.node .small { font-size: 26px; line-height: 1.35; color: #3b4a42; }
+.arch .col { flex: 1.25; gap: 24px; }
+
+/* === NAVIGATION === */
+.deck-controls{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:9px 15px;background:#17241f;color:#f4f2e9;border:1px solid #617165;border-radius:6px;font:14px 'IBM Plex Mono',monospace;white-space:nowrap;opacity:.35;transition:opacity .2s}
+.deck-controls:hover,.deck-controls:focus-within{opacity:1}
+.deck-controls button{font:inherit;color:inherit;background:none;border:1px solid #617165;border-radius:4px;padding:3px 10px;cursor:pointer}
+.deck-controls button:hover{background:#2f433a}
+
+/* === PRINT: one slide per page === */
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff}
+  .deck-viewport{position:static;overflow:visible}
+  .deck-stage{position:static;width:auto;height:auto;transform:none!important;overflow:visible}
+  .slide{position:relative;visibility:visible;opacity:1;pointer-events:auto;break-after:page;page-break-after:always}
+  .slide:last-child{break-after:auto;page-break-after:auto}
+  .deck-controls{display:none!important}
+}
+
+/* === Additions for the Agentic AI Lens cost decks === */
+.stat { display: flex; flex-direction: column; gap: 8px; padding: 26px 34px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.stat .big { font-family: 'Archivo', Arial, sans-serif; font-size: 84px; font-weight: 900; line-height: 1; letter-spacing: -3px; color: #e64b26; }
+.stat .body { font-size: 26px; line-height: 1.35; }
+section.dark .stat { background: #22332b; border-color: #3b4b43; }
+section.dark table, section.dark th, section.dark td { color: #e6eae4; border-color: #3b4b43; }
+section.dark th { color: #c5d0c8; }
+.rk { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #3b4a42; }
+.rk.hi { color: #b8330f; font-weight: 700; }
+section.dark .rk.hi { color: #f2906f; }
+td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.86em; color: #b8330f; }
+.col.narrow { flex: .7; }
+.cards.tight { gap: 24px; }
+.cards.tight .card { padding: 30px; }
+.cards.tight .body { font-size: 26px; }
+
+/* === Additions for the exam-prep decks === */
+.step.tight{padding:26px 22px}.step.tight .body{font-size:25px}.step.tight h3{font-size:32px}
+.cards.five .card{padding:26px}.cards.five .body{font-size:24px}.cards.five h3{font-size:34px}
+table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
+.codeblock{margin-top:40px}
+</style>
+</head>
+<body>
+<div class="deck-viewport"><main class="deck-stage" id="deckStage">
+<section id="cover" class="slide dark" style="justify-content: center;">
+<p class="eyebrow">AIP-C01 / Task 1.6 / 12</p>
+<h1>A prompt is <span class="accent">code</span>.</h1>
+<div class="stripe"></div>
+<p class="lede" style="width: 1400px;">Write templates with variables, version and approve them, test for regressions, keep conversation context under control, and chain prompts into flows.</p>
+<div class="footer"><p>Amazon Bedrock · Prompt engineering and governance</p><p>01 / 10</p></div>
+<aside>Task 1.6 covers instructions, templates and guardrails, conversation context, versioning, approvals and audit logs, testing, iteration, and prompt chains. Demo: Prompt Lab in exam_app.py, including publishing to Bedrock Prompt management.</aside>
+</section>
+<section id="s2" class="slide">
+<p class="eyebrow">01 / Anatomy</p>
+<h2>Five parts of a good template.</h2>
+<div class="cards tight five"><div class="card"><p class="tag">ROLE</p><h3>Who and why</h3><p class="body">One line on the job and the audience.</p></div><div class="card"><p class="tag">TASK</p><h3>What to do</h3><p class="body">Specific, with limits: length, language, format.</p></div><div class="card"><p class="tag">CONTEXT</p><h3>Delimited data</h3><p class="body">Untrusted text in tags such as <span class="mono">&lt;note&gt;</span>.</p></div><div class="card"><p class="tag">EXAMPLES</p><h3>Show, don't tell</h3><p class="body">One or two few-shot examples of the output.</p></div><div class="card"><p class="tag">FORMAT</p><h3>The contract</h3><p class="body">JSON keys or a fixed line the code can parse.</p></div></div>
+<div class="band">Variables mark what changes between calls: <span class="mono">{{note}}</span>.</div>
+<div class="footer"><p>Amazon Bedrock · Prompt engineering and governance</p><p>02 / 10</p></div>
+<aside>Instructions can also include guardrail-style rules: what never to reveal, what to refuse, and to treat quoted text as data. Few-shot examples improve format adherence but cost tokens on every call.</aside>
+</section>
+<section id="s3" class="slide">
+<p class="eyebrow">02 / Variables</p>
+<h2>One template, many inputs.</h2>
+<div class="cols"><div class="col"><div class="term"><div class="ln ">Summarize the note for {{product}}.</div><div class="ln "></div><div class="ln dim">&lt;note&gt;</div><div class="ln hot">{{note}}</div><div class="ln dim">&lt;/note&gt;</div><div class="ln "></div><div class="ln dim">promptVariables = {</div><div class="ln ">&nbsp;&nbsp;"product": {"text": "AcmeHeat"},</div><div class="ln ">&nbsp;&nbsp;"note": {"text": "..."} }</div></div></div><div class="col"><div class="card"><p class="tag">TEMPLATE</p><h3>Reusable</h3><p class="body">The wording lives in one place and is reviewed once.</p></div><div class="card"><p class="tag">SAFER</p><h3>Delimited</h3><p class="body">Tags separate instructions from untrusted data.</p></div></div></div>
+<div class="footer"><p>Amazon Bedrock · Prompt engineering and governance</p><p>03 / 10</p></div>
+<aside>Bedrock Prompt management uses the double-brace variable syntax. You pass values in promptVariables when you call Converse with the prompt ARN as the model ID. Normalizing noisy input before substitution (slide 08) improves results too.</aside>
+</section>
+<section id="s4" class="slide">
+<p class="eyebrow">03 / Lifecycle</p>
+<h2>Draft, version, approve, promote.</h2>
+<div class="flow"><div class="step tight"><p class="num">1 / DRAFT</p><h3>Edit freely</h3><p class="body">Work in progress. Never used by production.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">2 / VERSION</p><h3>Freeze a snapshot</h3><p class="body">Immutable, with a hash and a note.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">3 / APPROVE</p><h3>A named reviewer</h3><p class="body">Recorded with who and when.</p></div><div class="arrow">&rarr;</div><div class="step final tight"><p class="num">4 / PROMOTE</p><h3>Point production at it</h3><p class="body">Roll back by pointing at an older approved version.</p></div></div>
+<div class="band">Production never runs the draft. It runs a <span class="hl">named, approved version</span>.</div>
+<div class="footer"><p>Amazon Bedrock · Prompt engineering and governance</p><p>04 / 10</p></div>
+<aside>This is the immutable approved snapshot pattern: production resolves a version, not the draft, so later edits cannot change behaviour. Rollback is promoting an earlier approved version and the audit log records it.</aside>
+</section>
+<section id="s5" class="slide">
+<p class="eyebrow">04 / In Bedrock</p>
+<h2>Prompt management.</h2>
+<div class="cards"><div class="card"><p class="tag">CREATE</p><h3>CreatePrompt</h3><p class="body">Store a prompt with variables, model and inference settings as a variant.</p></div><div class="card"><p class="tag">FREEZE</p><h3>CreatePromptVersion</h3><p class="body">Make an immutable version with its own ARN. Draft edits do not change it.</p></div><div class="card"><p class="tag">USE</p><h3>Converse with the ARN</h3><p class="body">Pass the version ARN as <span class="mono">modelId</span> and the values as <span class="mono">promptVariables</span>.</p></div></div>
+<div class="band">Approvals and audit logs are <span class="hl">your</span> process: CloudTrail records the API calls.</div>
+<div class="footer"><p>Amazon Bedrock · Prompt engineering and governance</p><p>05 / 10</p></div>
+<aside>Prompt management gives versioning and a stable ARN. Approval workflow and sign-off are not built in; implement them with IAM permissions on who can create versions and promote aliases, plus a record in your own store.</aside>
+</section>
+<section id="s6" class="slide">
+<p class="eyebrow">05 / Audit</p>
+<h2>Who changed what, and when.</h2>
+<table class="dense" style="font-size: 26px;"><tr><th style="width: 28%;">Event</th><th style="width: 44%;">Record</th><th style="width: 28%;">Where</th></tr><tr><td>Snapshot</td><td>Version number, SHA-256, author, note</td><td>Prompt store</td></tr><tr><td>Approval</td><td>Reviewer, time, version</td><td>Prompt store</td></tr><tr><td>Promotion or rollback</td><td>Old and new production version, actor</td><td>Audit log</td></tr><tr><td>Every answer</td><td>Prompt version ARN, model, guardrail version</td><td>Answer metadata</td></tr><tr><td>API activity</td><td>Caller and action on the prompt resource</td><td>CloudTrail</td></tr></table>
+<div class="band">With these fields, any answer can be traced back to <span class="hl">the exact text</span> that produced it.</div>
+<div class="footer"><p>Amazon Bedrock · Prompt engineering and governance</p><p>06 / 10</p></div>
+<aside>The Prompt Lab shows the audit table in the Audit log tab. In production, store the audit trail outside the browser session and restrict write access.</aside>
+</section>
+<section id="s7" class="slide">
+<p class="eyebrow">06 / Test</p>
+<h2>Regression-test before you promote.</h2>
+<div class="flow"><div class="step tight"><p class="num">1 / FIXED CASES</p><h3>Same inputs</h3><p class="body">Normal, edge, injection and PII cases.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">2 / EXPECTATIONS</p><h3>Checks per case</h3><p class="body">Must contain, must not contain, length, schema.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">3 / COMPARE</p><h3>Baseline versus candidate</h3><p class="body">Run both; any case that got worse is a regression.</p></div><div class="arrow">&rarr;</div><div class="step final tight"><p class="num">4 / DECIDE</p><h3>Promote or stop</h3><p class="body">Fewer passes than baseline means do not promote.</p></div></div>
+<div class="band">Test the <span class="hl">actual</span> approved rubric and dataset, not a fresh one each time.</div>
+<div class="footer"><p>Amazon Bedrock · Prompt engineering and governance</p><p>07 / 10</p></div>
+<aside>Iterative improvement works only if you can tell better from worse. Add an LLM judge for subjective qualities and keep the dataset versioned.</aside>
+</section>
+<section id="s8" class="slide">
+<p class="eyebrow">07 / Conversation context</p>
+<h2>Memory is just what you send.</h2>
+<div class="cards"><div class="card"><p class="tag">HISTORY</p><h3>Messages list</h3><p class="body">Converse takes alternating user and assistant messages. The model remembers only what you include.</p></div><div class="card"><p class="tag">STORE</p><h3>Persist it</h3><p class="body">Keep turns in DynamoDB keyed by session, so any Lambda can rebuild the context.</p></div><div class="card"><p class="tag">TRIM</p><h3>Budget tokens</h3><p class="body">Cap the window: drop old turns or replace them with a short summary.</p></div></div>
+<div class="band">Longer history means <span class="hl">more tokens on every call</span> and a higher chance of hitting the limit.</div>
+<div class="footer"><p>Amazon Bedrock · Prompt engineering and governance</p><p>08 / 10</p></div>
+<aside>Converse keeps the same message shape across models, which preserves portability. For long-term memory across sessions, use a managed memory service or your own store with actor and session IDs.</aside>
+</section>
+<section id="s9" class="slide">
+<p class="eyebrow">08 / Chains and flows</p>
+<h2>Pick the orchestrator that fits.</h2>
+<table class="dense" style="font-size: 26px;"><tr><th style="width: 30%;">Use</th><th style="width: 70%;">When</th></tr><tr><td>Prompt chain in code</td><td>A few fixed steps: classify, then answer</td></tr><tr><td>Bedrock Flows</td><td>A visual, versioned graph of prompts, conditions and knowledge bases</td></tr><tr><td>Step Functions</td><td>Retries, parallel branches, human approval, long running work</td></tr><tr><td>An agent</td><td>The model must choose the steps and tools itself</td></tr></table>
+<div class="band">A typical chain: classify, route, retrieve, generate, <span class="hl">validate</span>.</div>
+<div class="footer"><p>Amazon Bedrock · Prompt engineering and governance</p><p>09 / 10</p></div>
+<aside>Conditional flows send easy requests down a cheap path and hard ones to a larger model. Prefer the simplest orchestrator that works: agents add flexibility and unpredictability.</aside>
+</section>
+<section id="wrap" class="slide dark">
+<p class="eyebrow">Recap</p>
+<h2>Treat prompts like releases.</h2>
+<div class="cards"><div class="card"><p class="tag">TEMPLATE</p><h3>Variables and tags</h3><p class="body">Reusable and safer.</p></div><div class="card"><p class="tag">VERSION</p><h3>Immutable and approved</h3><p class="body">Promote and roll back by pointer.</p></div><div class="card"><p class="tag">TEST</p><h3>Fixed cases</h3><p class="body">Compare to baseline before promoting.</p></div></div>
+<div class="band">Try it: <span class="hl">Prompt Lab</span>.</div>
+<div class="footer"><p>Amazon Bedrock · Prompt engineering and governance</p><p>10 / 10</p></div>
+<aside>Close with the Prompt Lab workflow: edit the draft, snapshot, approve, promote, run the regression tab, and read the audit log.</aside>
+</section>
+</main></div>
+<nav class="deck-controls" aria-label="Slide navigation"><button id="prev" aria-label="Previous slide">←</button><span id="counter" aria-live="polite"></span><button id="next" aria-label="Next slide">→</button></nav>
+<script>
+/* Arrow keys, PageUp/PageDown, Space, Home and End move between slides; the slide number is kept in the URL hash. */
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var stage = document.getElementById('deckStage');
+  var counter = document.getElementById('counter');
+  var current = 0;
+  function fit() {
+    var f = Math.min(innerWidth / 1920, innerHeight / 1080);
+    stage.style.transform = 'translate(' + (innerWidth - 1920 * f) / 2 + 'px,' + (innerHeight - 1080 * f) / 2 + 'px) scale(' + f + ')';
+  }
+  function show(n) {
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach(function (s, k) {
+      s.classList.toggle('active', k === current);
+      s.setAttribute('aria-hidden', String(k !== current));
+    });
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    try { history.replaceState(null, '', '#' + (current + 1)); } catch (e) {}
+  }
+  document.getElementById('prev').onclick = function () { show(current - 1); };
+  document.getElementById('next').onclick = function () { show(current + 1); };
+  addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); show(current + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); show(current - 1); }
+    else if (k === 'Home') show(0);
+    else if (k === 'End') show(slides.length - 1);
+  });
+  addEventListener('resize', fit);
+  fit();
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>

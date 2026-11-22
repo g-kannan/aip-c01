@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent reasoning cost — Bound the loop (AGENTCOST01)</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=IBM+Plex+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* === FIXED 16:9 STAGE ===
+   Slides are authored at 1920x1080 and scaled as a whole, like slides/01-bedrock-inference.
+   Generated from the deck's shared stylesheet plus one <section> per slide. */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#181a19}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:#181a19}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:#f4f2e9}
+.slide{position:absolute;left:0;top:0;width:1920px;height:1080px;box-sizing:border-box;overflow:hidden;visibility:hidden;opacity:0;pointer-events:none}
+.slide.active{visibility:visible;opacity:1;pointer-events:auto}
+aside{display:none}
+ul,ol{margin:0;padding-left:44px}
+
+/* === SLIDE LOOK (shared deck.css) === */
+/* How AWS SAM works: shared look. Palette matches slides/01-bedrock-inference.
+   Light slide #f4f2e9, dark slide #17241f, accent #e64b26 (fills, large type),
+   #b8330f for small accent text so it holds 4.5:1 on the light tone. */
+
+body { font-family: 'Nunito', Arial, sans-serif; color: #17241f; }
+h1, h2, h3, p { margin: 0; }
+
+section { display: flex; flex-direction: column; padding: 128px 128px 160px; background: #f4f2e9; color: #17241f; }
+section.dark { background: #17241f; color: #f4f2e9; }
+
+/* Type scale: 128 / 72 / 40 / 30 / 26 / 24 */
+h1 { font-family: 'Archivo', Arial, sans-serif; font-size: 128px; font-weight: 900; line-height: 1; letter-spacing: -5px; }
+h2 { font-family: 'Archivo', Arial, sans-serif; font-size: 72px; font-weight: 800; line-height: 1.05; letter-spacing: -2px; }
+h3 { font-family: 'Archivo', Arial, sans-serif; font-size: 40px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; }
+
+.eyebrow { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; margin-bottom: 28px; }
+section.dark .eyebrow { color: #f2906f; }
+.accent { color: #e8512b; }
+.hl { color: #f2906f; }
+.lede { font-size: 36px; line-height: 1.4; color: #526057; }
+section.dark .lede { color: #c5d0c8; }
+.body { font-size: 30px; line-height: 1.4; color: #17241f; }
+section.dark .body { color: #e6eae4; }
+.stripe { width: 240px; height: 12px; background: #e64b26; margin: 48px 0; }
+
+/* Footer: one pinned row */
+.footer { position: absolute; left: 128px; bottom: 56px; width: 1664px; height: 32px; display: flex; justify-content: space-between; }
+.footer p { font-size: 24px; color: #526057; }
+section.dark .footer p { color: #b9c4bc; }
+
+/* Card rows */
+.cards { display: flex; gap: 32px; margin-top: 56px; }
+.card { flex: 1; display: flex; flex-direction: column; gap: 18px; padding: 36px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.card .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.cmd { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #17241f; background: #dce9d4; padding: 12px 16px; }
+section.dark .card { background: #22332b; border-color: #3b4b43; }
+section.dark .card .tag { color: #f2906f; }
+section.dark .card .cmd { background: #2f433a; color: #f4f2e9; }
+
+/* Statement band */
+.band { margin-top: 48px; padding: 28px 36px; background: #17241f; color: #f4f2e9; font-size: 30px; line-height: 1.4; }
+section.dark .band { background: #f4f2e9; color: #17241f; }
+
+/* Pipeline of steps */
+.flow { display: flex; margin-top: 56px; }
+.step { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 32px 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.step .body { font-size: 28px; }
+.step .num { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; }
+.step.final { background: #17241f; border-color: #17241f; color: #f4f2e9; }
+.step.final .num { color: #f2906f; }
+.step.final .cmd { background: #2f433a; color: #f4f2e9; }
+.step.final .body { color: #e6eae4; }
+.arrow { width: 64px; align-self: center; text-align: center; font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 44px; font-weight: 500; color: #e64b26; }
+
+/* Two columns */
+.cols { display: flex; gap: 64px; margin-top: 56px; }
+.col { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+.list { font-size: 32px; line-height: 1.4; color: #17241f; }
+.list li { margin-top: 14px; margin-bottom: 14px; }
+
+/* Terminal block */
+.term { padding: 36px 40px; background: #17241f; }
+.ln { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 26px; line-height: 1.55; color: #f4f2e9; }
+.ln.dim { color: #a9b9ad; }
+.ln.hot { color: #f2906f; }
+.ln.i1 { padding-left: 36px; }
+.ln.i2 { padding-left: 72px; }
+
+/* Tables */
+table { margin-top: 48px; width: 1664px; font-family: 'Nunito', Arial, sans-serif; font-size: 30px; color: #17241f; border-collapse: collapse; }
+th, td { padding: 22px 24px; text-align: left; border-bottom: 1px solid #c8cec3; vertical-align: top; }
+th { color: #526057; font-weight: 700; }
+
+/* Architecture row */
+.arch { display: flex; align-items: center; margin-top: 56px; }
+.node { display: flex; flex-direction: column; gap: 10px; padding: 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.node.wide { flex: 1; }
+.node.core { background: #dce9d4; border-color: #9fbf93; }
+.node .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.node h3 { font-size: 34px; }
+.node .small { font-size: 26px; line-height: 1.35; color: #3b4a42; }
+.arch .col { flex: 1.25; gap: 24px; }
+
+/* === NAVIGATION === */
+.deck-controls{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:9px 15px;background:#17241f;color:#f4f2e9;border:1px solid #617165;border-radius:6px;font:14px 'IBM Plex Mono',monospace;white-space:nowrap;opacity:.35;transition:opacity .2s}
+.deck-controls:hover,.deck-controls:focus-within{opacity:1}
+.deck-controls button{font:inherit;color:inherit;background:none;border:1px solid #617165;border-radius:4px;padding:3px 10px;cursor:pointer}
+.deck-controls button:hover{background:#2f433a}
+
+/* === PRINT: one slide per page === */
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff}
+  .deck-viewport{position:static;overflow:visible}
+  .deck-stage{position:static;width:auto;height:auto;transform:none!important;overflow:visible}
+  .slide{position:relative;visibility:visible;opacity:1;pointer-events:auto;break-after:page;page-break-after:always}
+  .slide:last-child{break-after:auto;page-break-after:auto}
+  .deck-controls{display:none!important}
+}
+
+/* === Additions for the Agentic AI Lens cost decks === */
+.stat { display: flex; flex-direction: column; gap: 8px; padding: 26px 34px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.stat .big { font-family: 'Archivo', Arial, sans-serif; font-size: 84px; font-weight: 900; line-height: 1; letter-spacing: -3px; color: #e64b26; }
+.stat .body { font-size: 26px; line-height: 1.35; }
+section.dark .stat { background: #22332b; border-color: #3b4b43; }
+section.dark table, section.dark th, section.dark td { color: #e6eae4; border-color: #3b4b43; }
+section.dark th { color: #c5d0c8; }
+.rk { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #3b4a42; }
+.rk.hi { color: #b8330f; font-weight: 700; }
+section.dark .rk.hi { color: #f2906f; }
+td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.86em; color: #b8330f; }
+.col.narrow { flex: .7; }
+.cards.tight { gap: 24px; }
+.cards.tight .card { padding: 30px; }
+.cards.tight .body { font-size: 26px; }
+</style>
+</head>
+<body>
+<div class="deck-viewport"><main class="deck-stage" id="deckStage">
+<section id="cover" class="slide dark" style="justify-content: center;">
+<p class="eyebrow">AIP-C01 / Agentic AI Lens / 03</p>
+<h1>Bound the loop.<br>Pay for <span class="accent">thinking</span> once.</h1>
+<div class="stripe"></div>
+<p class="lede" style="width: 1400px;">AGENTCOST01: how do you optimize agent reasoning and execution costs? Four best practices from the AWS Well-Architected Agentic AI Lens.</p>
+<div class="footer"><p>AGENTCOST01 · Reasoning and execution cost</p><p>01 / 12</p></div>
+<aside>Frame the talk: this is the first of the cost questions in the Agentic AI Lens. It is about the tokens an agent burns while it reasons and while several agents coordinate, not about which model is called. Model choice and prompt size are the next deck (AGENTCOST02).</aside>
+</section>
+<section id="question" class="slide">
+<p class="eyebrow">01 / The question</p>
+<h2>Cost grows in the loop, not the prompt.</h2>
+<div class="cards">
+<div class="card"><p class="tag">REASONING</p><h3>Loops repeat</h3><p class="body">Plan, execute, verify and reflect cycles each consume tokens, and nothing stops them unless you add an exit.</p></div>
+<div class="card"><p class="tag">COORDINATION</p><h3>Agents multiply it</h3><p class="body">Every handoff and every supervisor layer adds inference calls on top of the real work.</p></div>
+<div class="card"><p class="tag">OUTCOME</p><h3>Predictable budgets</h3><p class="body">Design cost-aware reasoning up front and avoid the cost growth that appears after launch.</p></div>
+</div>
+<div class="band">Goal: <span class="hl">expensive model calls only where language understanding is needed</span>, and everything else bounded, shared or rule-based.</div>
+<div class="footer"><p>AGENTCOST01 · Reasoning and execution cost</p><p>02 / 12</p></div>
+<aside>The Lens says teams that design cost-aware reasoning patterns early can reach predictable token budgets, and avoid the cost growth that tends to emerge once an agentic project is live. The capability intent has five parts: bounded reasoning cycles, coordination that scales with task complexity rather than conversation length, orchestration matched to how deterministic each decision is, hierarchies as shallow as the workflow allows, and reasoning and coordination cost tracked as separate metrics.</aside>
+</section>
+<section id="map" class="slide">
+<p class="eyebrow">02 / The four practices</p>
+<h2>One question, four levers.</h2>
+<table style="font-size: 28px;">
+<tr><th style="width: 15%;">ID</th><th style="width: 33%;">Practice</th><th style="width: 12%;">Risk</th><th style="width: 40%;">The lever</th></tr>
+<tr><td><span class="mono">BP01</span></td><td>Reflection loops that stop</td><td><span class="rk">Medium</span></td><td>Iteration cap, confidence exit, token budget</td></tr>
+<tr><td><span class="mono">BP02</span></td><td>Efficient agent handoffs</td><td><span class="rk hi">High</span></td><td>Structured summaries and shared memory</td></tr>
+<tr><td><span class="mono">BP03</span></td><td>Hybrid supervisor</td><td><span class="rk">Medium</span></td><td>Rules first, AI only for ambiguity</td></tr>
+<tr><td><span class="mono">BP04</span></td><td>Shallow hierarchies</td><td><span class="rk">Medium</span></td><td>Compact manifests, autonomous workers</td></tr>
+</table>
+<div class="band">Risk is the Lens rating for <span class="hl">not</span> establishing the practice. Handoff cost is the only High.</div>
+<div class="footer"><p>AGENTCOST01 · Reasoning and execution cost</p><p>03 / 12</p></div>
+<aside>Each practice is a numbered best practice under AGENTCOST01: BP01 to BP04. The risk column is the level of risk the Lens assigns if the practice is not established. BP02 is rated High because redundant context at every handoff is described as the largest hidden cost in multi-agent systems. The other three are Medium.</aside>
+</section>
+<section id="bp01" class="slide">
+<p class="eyebrow">BP01 / Reflection loops</p>
+<h2>Every loop needs an exit.</h2>
+<div class="cols">
+<div class="col">
+<ul class="list">
+<li>Set three limits per agent: a maximum iteration count, a confidence threshold and a per-session token budget.</li>
+<li>Reflect selectively. Run full self-correction only when the first output scores below a threshold.</li>
+<li>Track tokens per cycle and decision quality, then tune the limits from data.</li>
+</ul>
+</div>
+<div class="col narrow">
+<div class="stat"><p class="big">3</p><p class="body">limits on every agent: iterations, confidence, tokens</p></div>
+<div class="stat"><p class="big">Gate</p><p class="body">reflection on a lightweight rubric score</p></div>
+</div>
+</div>
+<div class="band">Enforce caps in <span class="hl">AgentCore Policy</span>, not just the system prompt. A prompt-only cap can drift under prompt injection.</div>
+<div class="footer"><p>AGENTCOST01 · Reasoning and execution cost</p><p>04 / 12</p></div>
+<aside>Each reflection loop assumes another iteration improves the answer by more than it costs. Make the loop emit a structured confidence signal with every action, inspect it in the orchestration layer, and stop when it clears the threshold. Iteration caps written only in the system prompt can drift under adversarial input, so enforce them at the traffic layer using Cedar policies in Amazon Bedrock AgentCore Policy at the AgentCore Gateway boundary. AgentCore Runtime gives each session its own budget. Use smaller models for the plan and verify phases and keep the largest model for execution.</aside>
+</section>
+<section id="bp01-steps" class="slide">
+<p class="eyebrow">BP01 / Steps</p>
+<h2>Five steps to a bounded loop.</h2>
+<table style="font-size: 26px;">
+<tr><th style="width: 5%;">#</th><th style="width: 33%;">Step</th><th style="width: 34%;">What to do</th><th style="width: 28%;">AWS service</th></tr>
+<tr><td>1</td><td>Define termination</td><td>Iteration, confidence and token limits</td><td><span class="mono">AgentCore Policy</span></td></tr>
+<tr><td>2</td><td>Instrument each cycle</td><td>Token counts, alarms on anomalies</td><td><span class="mono">Observability, CloudWatch</span></td></tr>
+<tr><td>3</td><td>Set objective confidence</td><td>Anchor to measured quality</td><td><span class="mono">AgentCore Evaluations</span></td></tr>
+<tr><td>4</td><td>Gate reflection</td><td>Reflect only below the rubric score</td><td>Orchestration layer</td></tr>
+<tr><td>5</td><td>Recalibrate</td><td>Monthly, or quarterly if stable</td><td>Cost-quality baselines</td></tr>
+</table>
+<div class="band">Anchor early exit to <span class="hl">LLM-as-a-Judge scores</span>, not to the agent's self-reported confidence.</div>
+<div class="footer"><p>AGENTCOST01 · Reasoning and execution cost</p><p>05 / 12</p></div>
+<aside>The five implementation steps from the Lens. One: set termination conditions per agent and enforce them with AgentCore Policy Cedar policies at the Gateway. Two: enable AgentCore Observability to capture per-session token counts through OpenTelemetry and put CloudWatch alarms on anomalous per-cycle patterns. Three: use AgentCore Evaluations with LLM-as-a-Judge so early-termination thresholds rest on measured quality. Four: score each initial output with a lightweight rubric and reflect only below a configurable threshold. Five: review cost-quality baselines monthly, or quarterly for stable workloads, and adjust thresholds, iteration limits and reflection triggers.</aside>
+</section>
+<section id="bp02" class="slide">
+<p class="eyebrow">BP02 / Handoffs</p>
+<h2>Send a summary, not the transcript.</h2>
+<div class="cols" style="margin-top: 48px;">
+<div class="col">
+<div class="card"><p class="tag">ANTI-PATTERN</p><h3>Full history, every handoff</h3><p class="body">Shared facts are re-sent to each agent, so context grows with agent count. Handoff cost goes untracked.</p></div>
+</div>
+<div class="col">
+<div class="card" style="background: #dce9d4; border-color: #9fbf93;"><p class="tag">PATTERN</p><h3>Structured handoff + shared memory</h3><p class="body">A versioned summary: task spec, relevant facts, constraints. Common context lives in AgentCore Memory, written once and read by many.</p></div>
+</div>
+</div>
+<div class="band">Rated <span class="hl">High</span>: redundant context at every handoff is the largest hidden cost in a multi-agent system.</div>
+<div class="footer"><p>AGENTCOST01 · Reasoning and execution cost</p><p>06 / 12</p></div>
+<aside>Treat handoff messages as structured summaries. Version the schema so receivers can reject malformed handoffs. AgentCore Memory supports write once, read many: one agent stores a fact under a session ID and actor ID, and collaborators read it without re-embedding it. A small model call or a Lambda function can distill context to the minimum sufficient set before each handoff. Document which agent owns writes to each memory namespace. The outcome is coordination cost that tracks task complexity rather than conversation length or agent count.</aside>
+</section>
+<section id="bp02-steps" class="slide">
+<p class="eyebrow">BP02 / Flatten and measure</p>
+<h2>Flatten the tree, then watch the ratio.</h2>
+<div class="cols">
+<div class="col">
+<ol class="list" style="font-size: 28px;">
+<li>Distill context with a small model or Lambda before each handoff.</li>
+<li>Audit supervisor-worker depth. Replace middle layers with direct worker-to-worker calls over the AgentCore Runtime A2A protocol.</li>
+<li>Publish agents as tools through AgentCore Gateway with Semantic Tool Selection on.</li>
+<li>Run AgentCore Evaluations on live tool-call traces and in CI/CD.</li>
+<li>Tag every call with workflow-id and agent-role. Alert in AWS Budgets above the ratio.</li>
+</ol>
+</div>
+<div class="col narrow">
+<div class="stat"><p class="big">20%</p><p class="body">max share of workflow tokens spent on orchestration</p></div>
+<div class="stat"><p class="big">&gt;3</p><p class="body">levels deep and supervisor calls compound quickly</p></div>
+</div>
+</div>
+<div class="footer"><p>AGENTCOST01 · Reasoning and execution cost</p><p>07 / 12</p></div>
+<aside>Each supervisor-worker layer adds at least one inference to delegate and one to synthesize, so hierarchies deeper than three levels compound fast. The diagnostic metric is the orchestration-to-execution token ratio, and supervisors should use no more than 20 percent of total workflow tokens. AgentCore Observability gives distributed tracing so agent-to-agent cost shows as its own category. The full step list in the Lens also includes designing structured handoff messages and provisioning shared memory with ownership rules, which are on the previous slide.</aside>
+</section>
+<section id="bp03" class="slide">
+<p class="eyebrow">BP03 / Hybrid supervisor</p>
+<h2>Use the cheapest mechanism that can decide.</h2>
+<table style="font-size: 28px;">
+<tr><th style="width: 26%;">Routing decision</th><th style="width: 44%;">Mechanism</th><th style="width: 30%;">Rule of thumb</th></tr>
+<tr><td>Fully deterministic</td><td>Cedar policy at AgentCore Gateway. No inference.</td><td>Fewer than 10 branches</td></tr>
+<tr><td>Partly deterministic</td><td>Lightweight classifier. Rules first, escalate below a confidence threshold.</td><td>10 to 50 categories</td></tr>
+<tr><td>Open-ended</td><td>AI supervisor with full model reasoning.</td><td>Unbounded categories</td></tr>
+</table>
+<div class="band">Overhead ratio = supervisor tokens ÷ total tokens. If it drifts up, the pattern needs <span class="hl">reassessment, not a bigger budget</span>.</div>
+<div class="footer"><p>AGENTCOST01 · Reasoning and execution cost</p><p>08 / 12</p></div>
+<aside>At each orchestration point, the routing decision is either a selection among a finite set of conditions, such as task type, output classification or error code, which rules can handle, or an open-ended judgment that needs a model. Teams often pay for AI supervision across a whole workflow simply because the pattern defaults that way. The quantitative guidance in the Lens is rules for fewer than ten deterministic branches, a lightweight classifier for ten to fifty categories, and an AI supervisor only for unbounded category spaces. The classifier can be a small Bedrock model or a rule-based heuristic, and its escalation rate is the tuning signal.</aside>
+</section>
+<section id="bp03-steps" class="slide">
+<p class="eyebrow">BP03 / Steps</p>
+<h2>Four steps to hybrid supervision.</h2>
+<div class="flow">
+<div class="step"><p class="num">01</p><h3>Analyze</h3><p class="body">Classify each routing decision as deterministic, partial or open-ended. Record it as an ADR.</p></div>
+<p class="arrow">→</p>
+<div class="step"><p class="num">02</p><h3>Apply rules</h3><p class="body">Cedar policies in AgentCore Policy for every fully deterministic branch.</p></div>
+<p class="arrow">→</p>
+<div class="step"><p class="num">03</p><h3>Classify</h3><p class="body">Small model or heuristic first. Escalate to the supervisor below a threshold. Log the rate.</p></div>
+<p class="arrow">→</p>
+<div class="step final"><p class="num">04</p><h3>Attribute</h3><p class="body">AgentCore Observability splits tokens by orchestrator and worker. Alert on drift.</p></div>
+</div>
+<div class="band">Written criteria keep new workflows from <span class="hl">defaulting to AI supervision</span>.</div>
+<div class="footer"><p>AGENTCOST01 · Reasoning and execution cost</p><p>09 / 12</p></div>
+<aside>Step one is a workflow determinism analysis, with the rationale recorded as an architectural decision record. Step two configures AgentCore Policy Cedar policies at AgentCore Gateway for every fully deterministic branch. Step three inserts the lightweight classifier and logs the escalation rate. Step four separates orchestration cost from worker cost with AgentCore Observability, calculates the overhead ratio per workflow and alerts when it rises above baseline.</aside>
+</section>
+<section id="bp04" class="slide">
+<p class="eyebrow">BP04 / Hierarchies</p>
+<h2>Compact manifests, autonomous workers.</h2>
+<div class="cols">
+<div class="col">
+<ul class="list" style="font-size: 30px;">
+<li>Describe each worker as a structured manifest: description, input schema, output schema.</li>
+<li>Let supervisors discover tools at runtime through Gateway MCP, not a long prompt.</li>
+<li>Workers finish sub-tasks end to end and return one result with a confidence score.</li>
+<li>Workers read shared context from AgentCore Memory. Context relayed through a supervisor is sent twice.</li>
+</ul>
+</div>
+<div class="col narrow">
+<div class="stat"><p class="big">&lt;200</p><p class="body">tokens per worker manifest</p></div>
+<div class="stat"><p class="big">15%</p><p class="body">example target: supervisor tokens as a share of worker tokens</p></div>
+</div>
+</div>
+<div class="footer"><p>AGENTCOST01 · Reasoning and execution cost</p><p>10 / 12</p></div>
+<aside>Supervisor cost is driven by how expensive each routing decision is, which manifest size controls, and by how often routing happens, which autonomy controls. AgentCore Policy through Gateway limits which tools each worker can invoke on its own. Plan-then-execute can compress repeatable workflows further. The 15 percent figure is the example target in the Lens: alert when supervisor tokens exceed 15 percent of worker tokens. The anti-patterns are verbose natural-language capability descriptions, which make cost grow linearly with worker count, and supervisor check-ins after every sub-step.</aside>
+</section>
+<section id="anti" class="slide dark">
+<p class="eyebrow">Watch for these</p>
+<h2>Anti-patterns across the four.</h2>
+<div class="cards tight">
+<div class="card"><p class="tag">BP01</p><h3>Open loops</h3><p class="body">No iteration or cost caps. Reflection on every output. Fixed counts instead of confidence.</p></div>
+<div class="card"><p class="tag">BP02</p><h3>Chatty handoffs</h3><p class="body">Full history each hop. Deep supervisor trees. No shared memory.</p></div>
+<div class="card"><p class="tag">BP03</p><h3>Default AI routing</h3><p class="body">AI supervisors for deterministic flows, with no check for explicit rules.</p></div>
+<div class="card"><p class="tag">BP04</p><h3>Verbose manifests</h3><p class="body">Prose capability descriptions. Supervisor check-ins after every sub-step.</p></div>
+</div>
+<div class="band">Common thread: tracking only the <b>aggregate workflow cost</b> hides these.</div>
+<div class="footer"><p>AGENTCOST01 · Reasoning and execution cost</p><p>11 / 12</p></div>
+<aside>Read across the four. BP01 has no limits and reflects on everything. BP02 sends whole transcripts and builds deep trees. BP03 pays for a model to make decisions a rule could make. BP04 uses long prose capability descriptions and makes supervisors check in constantly. BP03 and BP04 list aggregate-only cost tracking as an anti-pattern and BP02 lists missing handoff cost tracking, which is why the closing slide is about metrics.</aside>
+</section>
+<section id="metrics" class="slide dark">
+<p class="eyebrow">Operate</p>
+<h2>Track four numbers per workflow.</h2>
+<table style="font-size: 28px;">
+<tr><th style="width: 36%;">Metric</th><th style="width: 46%;">Signal</th><th style="width: 18%;">Practice</th></tr>
+<tr><td>Tokens per reasoning cycle</td><td>Alarm on anomalous cycles</td><td><span class="mono">BP01</span></td></tr>
+<tr><td>Orchestration-to-execution ratio</td><td>Supervisors at or below 20%</td><td><span class="mono">BP02</span></td></tr>
+<tr><td>Escalation rate</td><td>Tuning signal for the classifier</td><td><span class="mono">BP03</span></td></tr>
+<tr><td>Supervisor-to-worker cost</td><td>Example target 15%, alert on breach</td><td><span class="mono">BP04</span></td></tr>
+</table>
+<div class="band">Related: AGENTCOST02 (models and tokens), AGENTCOST05, AGENTCOST07. Source: AWS Well-Architected Agentic AI Lens.</div>
+<div class="footer"><p>AGENTCOST01 · Reasoning and execution cost</p><p>12 / 12</p></div>
+<aside>Close on measurement. Each practice names a metric that tells you when the pattern needs adjusting: per-cycle tokens for reasoning loops, the orchestration-to-execution ratio for handoffs, the escalation rate for hybrid supervision, and the supervisor-to-worker ratio for hierarchies. The best practices cross-reference AGENTCOST02, AGENTCOST05 and AGENTCOST07; see the related list on each practice page. Source for the whole deck: the AGENTCOST01 pages of the AWS Well-Architected Framework Agentic AI Lens.</aside>
+</section>
+</main></div>
+<nav class="deck-controls" aria-label="Slide navigation"><button id="prev" aria-label="Previous slide">←</button><span id="counter" aria-live="polite"></span><button id="next" aria-label="Next slide">→</button></nav>
+<script>
+/* Arrow keys, PageUp/PageDown, Space, Home and End move between slides; the slide number is kept in the URL hash. */
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var stage = document.getElementById('deckStage');
+  var counter = document.getElementById('counter');
+  var current = 0;
+  function fit() {
+    var f = Math.min(innerWidth / 1920, innerHeight / 1080);
+    stage.style.transform = 'translate(' + (innerWidth - 1920 * f) / 2 + 'px,' + (innerHeight - 1080 * f) / 2 + 'px) scale(' + f + ')';
+  }
+  function show(n) {
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach(function (s, k) {
+      s.classList.toggle('active', k === current);
+      s.setAttribute('aria-hidden', String(k !== current));
+    });
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    try { history.replaceState(null, '', '#' + (current + 1)); } catch (e) {}
+  }
+  document.getElementById('prev').onclick = function () { show(current - 1); };
+  document.getElementById('next').onclick = function () { show(current + 1); };
+  addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); show(current + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); show(current - 1); }
+    else if (k === 'Home') show(0);
+    else if (k === 'End') show(slides.length - 1);
+  });
+  addEventListener('resize', fit);
+  fit();
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>

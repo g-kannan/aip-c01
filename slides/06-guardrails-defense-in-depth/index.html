@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guardrails — Defense in depth, not one filter</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=IBM+Plex+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* === FIXED 16:9 STAGE ===
+   Slides are authored at 1920x1080 and scaled as a whole, like slides/01-bedrock-inference.
+   Generated from the deck's shared stylesheet plus one <section> per slide. */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#181a19}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:#181a19}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:#f4f2e9}
+.slide{position:absolute;left:0;top:0;width:1920px;height:1080px;box-sizing:border-box;overflow:hidden;visibility:hidden;opacity:0;pointer-events:none}
+.slide.active{visibility:visible;opacity:1;pointer-events:auto}
+aside{display:none}
+ul,ol{margin:0;padding-left:44px}
+
+/* === SLIDE LOOK (shared deck.css) === */
+/* How AWS SAM works: shared look. Palette matches slides/01-bedrock-inference.
+   Light slide #f4f2e9, dark slide #17241f, accent #e64b26 (fills, large type),
+   #b8330f for small accent text so it holds 4.5:1 on the light tone. */
+
+body { font-family: 'Nunito', Arial, sans-serif; color: #17241f; }
+h1, h2, h3, p { margin: 0; }
+
+section { display: flex; flex-direction: column; padding: 128px 128px 160px; background: #f4f2e9; color: #17241f; }
+section.dark { background: #17241f; color: #f4f2e9; }
+
+/* Type scale: 128 / 72 / 40 / 30 / 26 / 24 */
+h1 { font-family: 'Archivo', Arial, sans-serif; font-size: 128px; font-weight: 900; line-height: 1; letter-spacing: -5px; }
+h2 { font-family: 'Archivo', Arial, sans-serif; font-size: 72px; font-weight: 800; line-height: 1.05; letter-spacing: -2px; }
+h3 { font-family: 'Archivo', Arial, sans-serif; font-size: 40px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; }
+
+.eyebrow { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; margin-bottom: 28px; }
+section.dark .eyebrow { color: #f2906f; }
+.accent { color: #e8512b; }
+.hl { color: #f2906f; }
+.lede { font-size: 36px; line-height: 1.4; color: #526057; }
+section.dark .lede { color: #c5d0c8; }
+.body { font-size: 30px; line-height: 1.4; color: #17241f; }
+section.dark .body { color: #e6eae4; }
+.stripe { width: 240px; height: 12px; background: #e64b26; margin: 48px 0; }
+
+/* Footer: one pinned row */
+.footer { position: absolute; left: 128px; bottom: 56px; width: 1664px; height: 32px; display: flex; justify-content: space-between; }
+.footer p { font-size: 24px; color: #526057; }
+section.dark .footer p { color: #b9c4bc; }
+
+/* Card rows */
+.cards { display: flex; gap: 32px; margin-top: 56px; }
+.card { flex: 1; display: flex; flex-direction: column; gap: 18px; padding: 36px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.card .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.cmd { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #17241f; background: #dce9d4; padding: 12px 16px; }
+section.dark .card { background: #22332b; border-color: #3b4b43; }
+section.dark .card .tag { color: #f2906f; }
+section.dark .card .cmd { background: #2f433a; color: #f4f2e9; }
+
+/* Statement band */
+.band { margin-top: 48px; padding: 28px 36px; background: #17241f; color: #f4f2e9; font-size: 30px; line-height: 1.4; }
+section.dark .band { background: #f4f2e9; color: #17241f; }
+
+/* Pipeline of steps */
+.flow { display: flex; margin-top: 56px; }
+.step { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 32px 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.step .body { font-size: 28px; }
+.step .num { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; }
+.step.final { background: #17241f; border-color: #17241f; color: #f4f2e9; }
+.step.final .num { color: #f2906f; }
+.step.final .cmd { background: #2f433a; color: #f4f2e9; }
+.step.final .body { color: #e6eae4; }
+.arrow { width: 64px; align-self: center; text-align: center; font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 44px; font-weight: 500; color: #e64b26; }
+
+/* Two columns */
+.cols { display: flex; gap: 64px; margin-top: 56px; }
+.col { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+.list { font-size: 32px; line-height: 1.4; color: #17241f; }
+.list li { margin-top: 14px; margin-bottom: 14px; }
+
+/* Terminal block */
+.term { padding: 36px 40px; background: #17241f; }
+.ln { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 26px; line-height: 1.55; color: #f4f2e9; }
+.ln.dim { color: #a9b9ad; }
+.ln.hot { color: #f2906f; }
+.ln.i1 { padding-left: 36px; }
+.ln.i2 { padding-left: 72px; }
+
+/* Tables */
+table { margin-top: 48px; width: 1664px; font-family: 'Nunito', Arial, sans-serif; font-size: 30px; color: #17241f; border-collapse: collapse; }
+th, td { padding: 22px 24px; text-align: left; border-bottom: 1px solid #c8cec3; vertical-align: top; }
+th { color: #526057; font-weight: 700; }
+
+/* Architecture row */
+.arch { display: flex; align-items: center; margin-top: 56px; }
+.node { display: flex; flex-direction: column; gap: 10px; padding: 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.node.wide { flex: 1; }
+.node.core { background: #dce9d4; border-color: #9fbf93; }
+.node .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.node h3 { font-size: 34px; }
+.node .small { font-size: 26px; line-height: 1.35; color: #3b4a42; }
+.arch .col { flex: 1.25; gap: 24px; }
+
+/* === NAVIGATION === */
+.deck-controls{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:9px 15px;background:#17241f;color:#f4f2e9;border:1px solid #617165;border-radius:6px;font:14px 'IBM Plex Mono',monospace;white-space:nowrap;opacity:.35;transition:opacity .2s}
+.deck-controls:hover,.deck-controls:focus-within{opacity:1}
+.deck-controls button{font:inherit;color:inherit;background:none;border:1px solid #617165;border-radius:4px;padding:3px 10px;cursor:pointer}
+.deck-controls button:hover{background:#2f433a}
+
+/* === PRINT: one slide per page === */
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff}
+  .deck-viewport{position:static;overflow:visible}
+  .deck-stage{position:static;width:auto;height:auto;transform:none!important;overflow:visible}
+  .slide{position:relative;visibility:visible;opacity:1;pointer-events:auto;break-after:page;page-break-after:always}
+  .slide:last-child{break-after:auto;page-break-after:auto}
+  .deck-controls{display:none!important}
+}
+
+/* === Additions for the Agentic AI Lens cost decks === */
+.stat { display: flex; flex-direction: column; gap: 8px; padding: 26px 34px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.stat .big { font-family: 'Archivo', Arial, sans-serif; font-size: 84px; font-weight: 900; line-height: 1; letter-spacing: -3px; color: #e64b26; }
+.stat .body { font-size: 26px; line-height: 1.35; }
+section.dark .stat { background: #22332b; border-color: #3b4b43; }
+section.dark table, section.dark th, section.dark td { color: #e6eae4; border-color: #3b4b43; }
+section.dark th { color: #c5d0c8; }
+.rk { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #3b4a42; }
+.rk.hi { color: #b8330f; font-weight: 700; }
+section.dark .rk.hi { color: #f2906f; }
+td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.86em; color: #b8330f; }
+.col.narrow { flex: .7; }
+.cards.tight { gap: 24px; }
+.cards.tight .card { padding: 30px; }
+.cards.tight .body { font-size: 26px; }
+
+/* === Additions for the exam-prep decks === */
+.step.tight{padding:26px 22px}.step.tight .body{font-size:25px}.step.tight h3{font-size:32px}
+.cards.five .card{padding:26px}.cards.five .body{font-size:24px}.cards.five h3{font-size:34px}
+table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
+.codeblock{margin-top:40px}
+</style>
+</head>
+<body>
+<div class="deck-viewport"><main class="deck-stage" id="deckStage">
+<section id="cover" class="slide dark" style="justify-content: center;">
+<p class="eyebrow">AIP-C01 / Task 3.1 / Safety / 06</p>
+<h1>Defense in depth.<br>Not <span class="accent">one</span> filter.</h1>
+<div class="stripe"></div>
+<p class="lede" style="width: 1400px;">Where to put safety controls around a model call, what Bedrock Guardrails can and cannot check, and why deterministic code still matters.</p>
+<div class="footer"><p>Amazon Bedrock · Guardrails and defense in depth</p><p>01 / 09</p></div>
+<aside>Task 3.1 asks you to filter harmful inputs and outputs, ground responses, enforce structured output, apply defense in depth and detect prompt injection. The theme of the deck: every control is probabilistic or narrow, so you stack them. Demo: Guardrails Lab in exam_app.py.</aside>
+</section>
+<section id="s2" class="slide">
+<p class="eyebrow">01 / Where controls go</p>
+<h2>Four places to put a control.</h2>
+<div class="flow"><div class="step tight"><p class="num">1 / INPUT</p><h3>Check the input</h3><p class="body">Length, PII, injection heuristics, topic rules. Block before inference.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">2 / PROMPT</p><h3>Shape the prompt</h3><p class="body">Delimit untrusted text, state rules, grant tools least privilege.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">3 / MODEL</p><h3>Guardrail on the call</h3><p class="body">Content, topic, PII, grounding and prompt-attack policies.</p></div><div class="arrow">&rarr;</div><div class="step final tight"><p class="num">4 / OUTPUT</p><h3>Validate the output</h3><p class="body">Schema, required text, allowed values. Fail to human review.</p></div></div>
+<div class="band">Cheapest first: a request blocked at step 1 <span class="hl">never costs a model call</span>.</div>
+<div class="footer"><p>Amazon Bedrock · Guardrails and defense in depth</p><p>02 / 09</p></div>
+<aside>Read left to right. Step 1 is plain code and costs nothing. Step 2 is design: the prompt and the tool permissions limit what a successful injection can do. Step 3 is the managed guardrail. Step 4 is deterministic validation of what comes back. Each layer catches something the others miss.</aside>
+</section>
+<section id="s3" class="slide">
+<p class="eyebrow">02 / What a guardrail checks</p>
+<h2>Six policy types.</h2>
+<table class="dense" style="font-size: 26px;"><tr><th style="width: 26%;">Policy</th><th style="width: 52%;">What it does</th><th style="width: 22%;">Applies to</th></tr><tr><td>Content filters</td><td>Hate, insults, sexual, violence, misconduct, with a strength per category</td><td>Input and output</td></tr><tr><td>Prompt attack</td><td>Detects jailbreak and prompt-injection attempts</td><td><b>Input only</b></td></tr><tr><td>Denied topics</td><td>Blocks subjects you define in plain language, with examples</td><td>Input and output</td></tr><tr><td>Word filters</td><td>Exact words, phrases and a managed profanity list</td><td>Input and output</td></tr><tr><td>Sensitive information</td><td>PII types and custom regex: block, or mask (anonymize)</td><td>Input and output</td></tr><tr><td>Contextual grounding</td><td>Scores grounding in a source, and relevance to the query, against thresholds</td><td>Model output</td></tr></table>
+<div class="footer"><p>Amazon Bedrock · Guardrails and defense in depth</p><p>03 / 09</p></div>
+<aside>Automated Reasoning checks are a separate, newer policy for validating answers against formal rules. The prompt attack filter only makes sense on the input, so its output strength must be NONE. Contextual grounding needs the source passage and the query passed with qualifiers, which is why RAG pipelines are its natural home. Verify the current list in the console: Bedrock adds policy types over time.</aside>
+</section>
+<section id="s4" class="slide">
+<p class="eyebrow">03 / Two ways to apply it</p>
+<h2>On the model call, or on its own.</h2>
+<div class="cards"><div class="card"><p class="tag">ATTACHED</p><h3>Converse / InvokeModel</h3><p class="body">Pass the guardrail ID and version with the request. Input and output are both checked.</p></div><div class="card"><p class="tag">STANDALONE</p><h3>ApplyGuardrail</h3><p class="body">Check any text with no model call: another provider, a database row, an upload. Source is INPUT or OUTPUT.</p></div><div class="card"><p class="tag">STREAMING</p><h3>Sync or async</h3><p class="body">ConverseStream can buffer chunks for checking (sync, safer) or check in parallel (async, lower latency).</p></div></div>
+<div class="band">ApplyGuardrail is also the cheapest way to <span class="hl">test a guardrail</span> against samples.</div>
+<div class="footer"><p>Amazon Bedrock · Guardrails and defense in depth</p><p>04 / 09</p></div>
+<aside>Converse takes guardrailConfig with guardrailIdentifier, guardrailVersion and optional trace. InvokeModel takes the identifier and version as parameters. For streaming responses the guardrail can run synchronously, which delays chunks until they are checked, or asynchronously, which is faster but may show text before it is flagged. ApplyGuardrail decouples the check from the model.</aside>
+</section>
+<section id="s5" class="slide">
+<p class="eyebrow">04 / Roll out safely</p>
+<h2>Detect first, enforce later.</h2>
+<div class="flow"><div class="step"><p class="num">1 / DETECT</p><h3>Action NONE</h3><p class="body">Each policy reports what it would do, and changes nothing.</p></div><div class="arrow">&rarr;</div><div class="step"><p class="num">2 / MEASURE</p><h3>Read the assessments</h3><p class="body">Count false positives on real traffic, tune thresholds and topics.</p></div><div class="arrow">&rarr;</div><div class="step final"><p class="num">3 / ENFORCE</p><h3>BLOCK or ANONYMIZE</h3><p class="body">Switch the action once the false-positive rate is acceptable.</p></div></div>
+<div class="band">Create a new <span class="hl">version</span> when you change the policy; production keeps calling the old one until you update it.</div>
+<div class="footer"><p>Amazon Bedrock · Guardrails and defense in depth</p><p>05 / 09</p></div>
+<aside>This is the shadow-test pattern from the practice questions. Detect mode keeps the response unchanged but returns the assessment, so you can see intervention counts without hurting users. Guardrail versions are immutable snapshots of the working draft.</aside>
+</section>
+<section id="s6" class="slide">
+<p class="eyebrow">05 / Reduce hallucination</p>
+<h2>Ground it, check it, cite it.</h2>
+<div class="cards"><div class="card"><p class="tag">GROUND</p><h3>Retrieve first</h3><p class="body">Answer from retrieved passages, not from memory. See the Knowledge Base Lab.</p></div><div class="card"><p class="tag">CHECK</p><h3>Grounding filter</h3><p class="body">Score the answer against the source and the question. Below the threshold, intervene.</p></div><div class="card"><p class="tag">CITE</p><h3>Show the source</h3><p class="body">Return citations so a person can verify each claim.</p></div></div>
+<div class="band">A relevance score is <span class="hl">not proof</span> that the text is true. Keep a human or rule in the loop for high-stakes facts.</div>
+<div class="footer"><p>Amazon Bedrock · Guardrails and defense in depth</p><p>06 / 09</p></div>
+<aside>Grounding reduces but does not eliminate hallucination. Contextual grounding scores are statistical. Citations let reviewers verify. For regulated claims, add deterministic checks such as numbers that must appear in the source.</aside>
+</section>
+<section id="s7" class="slide">
+<p class="eyebrow">06 / Guardrails plus code</p>
+<h2>Guardrails do not replace validation.</h2>
+<table class="dense" style="font-size: 26px;"><tr><th style="width: 40%;">Requirement</th><th style="width: 30%;">Managed guardrail</th><th style="width: 30%;">Deterministic code</th></tr><tr><td>Output is valid JSON with required keys</td><td>No</td><td><b>Yes</b>: schema validation</td></tr><tr><td>Answer includes the legal disclaimer</td><td>No</td><td><b>Yes</b>: string check</td></tr><tr><td>Every number appears in the source</td><td>Statistical only</td><td><b>Yes</b>: exact comparison</td></tr><tr><td>No hate or violent content</td><td><b>Yes</b></td><td>Weak</td></tr><tr><td>PII masked</td><td><b>Yes</b></td><td>Partial: regex for known formats</td></tr><tr><td>Prompt injection</td><td>Probabilistic</td><td>Heuristics, plus least privilege</td></tr></table>
+<div class="band">Invalid or non-compliant output goes to <span class="hl">human review</span>, never straight to the customer.</div>
+<div class="footer"><p>Amazon Bedrock · Guardrails and defense in depth</p><p>07 / 09</p></div>
+<aside>This is the practice-question pattern where auto-send is allowed only for valid JSON, grounded numbers and a disclaimer. A guardrail cannot promise a JSON shape. Code can. Use both.</aside>
+</section>
+<section id="s8" class="slide">
+<p class="eyebrow">07 / Prompt injection</p>
+<h2>Assume it will happen.</h2>
+<div class="cols"><div class="col"><h3>Two entry points</h3><ul class="list" style="font-size: 30px;"><li><b>Direct:</b> the user types the attack</li><li><b>Indirect:</b> hidden in a retrieved document, web page or tool result</li><li>Indirect is harder: your own data becomes the attacker</li></ul></div><div class="col"><h3>Layers that help</h3><ul class="list" style="font-size: 30px;"><li>Delimit untrusted text; tell the model it is data</li><li>Tag user input (<span class="mono">guardContent</span>) so the prompt-attack filter checks it</li><li>Give tools least privilege and require approval for risky actions</li><li>Validate output; red-team before each release</li></ul></div></div>
+<div class="footer"><p>Amazon Bedrock · Guardrails and defense in depth</p><p>08 / 09</p></div>
+<aside>No prompt wording makes injection impossible. The strongest control is limiting what a hijacked model can do: narrow tool permissions, no secrets in the prompt, human approval for irreversible actions. Pre-release red-team suites replay known attacks against staging.</aside>
+</section>
+<section id="wrap" class="slide dark">
+<p class="eyebrow">Recap</p>
+<h2>Stack the layers.</h2>
+<div class="cards"><div class="card"><p class="tag">INPUT</p><h3>Block early</h3><p class="body">Rules and PII masking before inference.</p></div><div class="card"><p class="tag">MODEL</p><h3>Guardrail</h3><p class="body">Detect first, then enforce; version every change.</p></div><div class="card"><p class="tag">OUTPUT</p><h3>Validate</h3><p class="body">Schema, disclaimer, numbers; human review on failure.</p></div></div>
+<div class="band">Try it: <span class="hl">Guardrails Lab</span> in exam_app.py. Next: slide 07, privacy and governance.</div>
+<div class="footer"><p>Amazon Bedrock · Guardrails and defense in depth</p><p>09 / 09</p></div>
+<aside>Close with the idea that safety is a pipeline, not a switch. Point to the Guardrails Lab: layers tab, ApplyGuardrail tab and the create-a-guardrail tab with Detect and Enforce.</aside>
+</section>
+</main></div>
+<nav class="deck-controls" aria-label="Slide navigation"><button id="prev" aria-label="Previous slide">←</button><span id="counter" aria-live="polite"></span><button id="next" aria-label="Next slide">→</button></nav>
+<script>
+/* Arrow keys, PageUp/PageDown, Space, Home and End move between slides; the slide number is kept in the URL hash. */
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var stage = document.getElementById('deckStage');
+  var counter = document.getElementById('counter');
+  var current = 0;
+  function fit() {
+    var f = Math.min(innerWidth / 1920, innerHeight / 1080);
+    stage.style.transform = 'translate(' + (innerWidth - 1920 * f) / 2 + 'px,' + (innerHeight - 1080 * f) / 2 + 'px) scale(' + f + ')';
+  }
+  function show(n) {
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach(function (s, k) {
+      s.classList.toggle('active', k === current);
+      s.setAttribute('aria-hidden', String(k !== current));
+    });
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    try { history.replaceState(null, '', '#' + (current + 1)); } catch (e) {}
+  }
+  document.getElementById('prev').onclick = function () { show(current - 1); };
+  document.getElementById('next').onclick = function () { show(current + 1); };
+  addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); show(current + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); show(current - 1); }
+    else if (k === 'Home') show(0);
+    else if (k === 'End') show(slides.length - 1);
+  });
+  addEventListener('resize', fit);
+  fit();
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>

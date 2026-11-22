@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacy and governance — Protect the data, prove what happened</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=IBM+Plex+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* === FIXED 16:9 STAGE ===
+   Slides are authored at 1920x1080 and scaled as a whole, like slides/01-bedrock-inference.
+   Generated from the deck's shared stylesheet plus one <section> per slide. */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#181a19}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:#181a19}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:#f4f2e9}
+.slide{position:absolute;left:0;top:0;width:1920px;height:1080px;box-sizing:border-box;overflow:hidden;visibility:hidden;opacity:0;pointer-events:none}
+.slide.active{visibility:visible;opacity:1;pointer-events:auto}
+aside{display:none}
+ul,ol{margin:0;padding-left:44px}
+
+/* === SLIDE LOOK (shared deck.css) === */
+/* How AWS SAM works: shared look. Palette matches slides/01-bedrock-inference.
+   Light slide #f4f2e9, dark slide #17241f, accent #e64b26 (fills, large type),
+   #b8330f for small accent text so it holds 4.5:1 on the light tone. */
+
+body { font-family: 'Nunito', Arial, sans-serif; color: #17241f; }
+h1, h2, h3, p { margin: 0; }
+
+section { display: flex; flex-direction: column; padding: 128px 128px 160px; background: #f4f2e9; color: #17241f; }
+section.dark { background: #17241f; color: #f4f2e9; }
+
+/* Type scale: 128 / 72 / 40 / 30 / 26 / 24 */
+h1 { font-family: 'Archivo', Arial, sans-serif; font-size: 128px; font-weight: 900; line-height: 1; letter-spacing: -5px; }
+h2 { font-family: 'Archivo', Arial, sans-serif; font-size: 72px; font-weight: 800; line-height: 1.05; letter-spacing: -2px; }
+h3 { font-family: 'Archivo', Arial, sans-serif; font-size: 40px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; }
+
+.eyebrow { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; margin-bottom: 28px; }
+section.dark .eyebrow { color: #f2906f; }
+.accent { color: #e8512b; }
+.hl { color: #f2906f; }
+.lede { font-size: 36px; line-height: 1.4; color: #526057; }
+section.dark .lede { color: #c5d0c8; }
+.body { font-size: 30px; line-height: 1.4; color: #17241f; }
+section.dark .body { color: #e6eae4; }
+.stripe { width: 240px; height: 12px; background: #e64b26; margin: 48px 0; }
+
+/* Footer: one pinned row */
+.footer { position: absolute; left: 128px; bottom: 56px; width: 1664px; height: 32px; display: flex; justify-content: space-between; }
+.footer p { font-size: 24px; color: #526057; }
+section.dark .footer p { color: #b9c4bc; }
+
+/* Card rows */
+.cards { display: flex; gap: 32px; margin-top: 56px; }
+.card { flex: 1; display: flex; flex-direction: column; gap: 18px; padding: 36px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.card .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.cmd { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #17241f; background: #dce9d4; padding: 12px 16px; }
+section.dark .card { background: #22332b; border-color: #3b4b43; }
+section.dark .card .tag { color: #f2906f; }
+section.dark .card .cmd { background: #2f433a; color: #f4f2e9; }
+
+/* Statement band */
+.band { margin-top: 48px; padding: 28px 36px; background: #17241f; color: #f4f2e9; font-size: 30px; line-height: 1.4; }
+section.dark .band { background: #f4f2e9; color: #17241f; }
+
+/* Pipeline of steps */
+.flow { display: flex; margin-top: 56px; }
+.step { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 32px 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.step .body { font-size: 28px; }
+.step .num { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; }
+.step.final { background: #17241f; border-color: #17241f; color: #f4f2e9; }
+.step.final .num { color: #f2906f; }
+.step.final .cmd { background: #2f433a; color: #f4f2e9; }
+.step.final .body { color: #e6eae4; }
+.arrow { width: 64px; align-self: center; text-align: center; font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 44px; font-weight: 500; color: #e64b26; }
+
+/* Two columns */
+.cols { display: flex; gap: 64px; margin-top: 56px; }
+.col { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+.list { font-size: 32px; line-height: 1.4; color: #17241f; }
+.list li { margin-top: 14px; margin-bottom: 14px; }
+
+/* Terminal block */
+.term { padding: 36px 40px; background: #17241f; }
+.ln { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 26px; line-height: 1.55; color: #f4f2e9; }
+.ln.dim { color: #a9b9ad; }
+.ln.hot { color: #f2906f; }
+.ln.i1 { padding-left: 36px; }
+.ln.i2 { padding-left: 72px; }
+
+/* Tables */
+table { margin-top: 48px; width: 1664px; font-family: 'Nunito', Arial, sans-serif; font-size: 30px; color: #17241f; border-collapse: collapse; }
+th, td { padding: 22px 24px; text-align: left; border-bottom: 1px solid #c8cec3; vertical-align: top; }
+th { color: #526057; font-weight: 700; }
+
+/* Architecture row */
+.arch { display: flex; align-items: center; margin-top: 56px; }
+.node { display: flex; flex-direction: column; gap: 10px; padding: 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.node.wide { flex: 1; }
+.node.core { background: #dce9d4; border-color: #9fbf93; }
+.node .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.node h3 { font-size: 34px; }
+.node .small { font-size: 26px; line-height: 1.35; color: #3b4a42; }
+.arch .col { flex: 1.25; gap: 24px; }
+
+/* === NAVIGATION === */
+.deck-controls{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:9px 15px;background:#17241f;color:#f4f2e9;border:1px solid #617165;border-radius:6px;font:14px 'IBM Plex Mono',monospace;white-space:nowrap;opacity:.35;transition:opacity .2s}
+.deck-controls:hover,.deck-controls:focus-within{opacity:1}
+.deck-controls button{font:inherit;color:inherit;background:none;border:1px solid #617165;border-radius:4px;padding:3px 10px;cursor:pointer}
+.deck-controls button:hover{background:#2f433a}
+
+/* === PRINT: one slide per page === */
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff}
+  .deck-viewport{position:static;overflow:visible}
+  .deck-stage{position:static;width:auto;height:auto;transform:none!important;overflow:visible}
+  .slide{position:relative;visibility:visible;opacity:1;pointer-events:auto;break-after:page;page-break-after:always}
+  .slide:last-child{break-after:auto;page-break-after:auto}
+  .deck-controls{display:none!important}
+}
+
+/* === Additions for the Agentic AI Lens cost decks === */
+.stat { display: flex; flex-direction: column; gap: 8px; padding: 26px 34px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.stat .big { font-family: 'Archivo', Arial, sans-serif; font-size: 84px; font-weight: 900; line-height: 1; letter-spacing: -3px; color: #e64b26; }
+.stat .body { font-size: 26px; line-height: 1.35; }
+section.dark .stat { background: #22332b; border-color: #3b4b43; }
+section.dark table, section.dark th, section.dark td { color: #e6eae4; border-color: #3b4b43; }
+section.dark th { color: #c5d0c8; }
+.rk { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #3b4a42; }
+.rk.hi { color: #b8330f; font-weight: 700; }
+section.dark .rk.hi { color: #f2906f; }
+td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.86em; color: #b8330f; }
+.col.narrow { flex: .7; }
+.cards.tight { gap: 24px; }
+.cards.tight .card { padding: 30px; }
+.cards.tight .body { font-size: 26px; }
+
+/* === Additions for the exam-prep decks === */
+.step.tight{padding:26px 22px}.step.tight .body{font-size:25px}.step.tight h3{font-size:32px}
+.cards.five .card{padding:26px}.cards.five .body{font-size:24px}.cards.five h3{font-size:34px}
+table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
+.codeblock{margin-top:40px}
+</style>
+</head>
+<body>
+<div class="deck-viewport"><main class="deck-stage" id="deckStage">
+<section id="cover" class="slide dark" style="justify-content: center;">
+<p class="eyebrow">AIP-C01 / Tasks 3.2, 3.3, 3.4 / 07</p>
+<h1>Protect the data.<br><span class="accent">Prove</span> what happened.</h1>
+<div class="stripe"></div>
+<p class="lede" style="width: 1400px;">Network and identity isolation, PII handling, retention, audit trails, model documentation and responsible-AI practices.</p>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>01 / 10</p></div>
+<aside>Three tasks in one deck: data security and privacy, governance and compliance, and responsible AI. The common thread is evidence: you must be able to show who called what, with which prompt, model and sources.</aside>
+</section>
+<section id="s2" class="slide">
+<p class="eyebrow">01 / Isolate</p>
+<h2>Keep traffic private.</h2>
+<div class="cards"><div class="card"><p class="tag">NETWORK</p><h3>Interface VPC endpoint</h3><p class="body">Reach <span class="mono">bedrock-runtime</span> over PrivateLink from private subnets. No internet gateway or NAT needed.</p></div><div class="card"><p class="tag">POLICY</p><h3>Endpoint policy</h3><p class="body">Restrict which principals and models the endpoint allows. Combine with <span class="mono">aws:SourceVpce</span> in IAM.</p></div><div class="card"><p class="tag">PRIVACY</p><h3>Provider isolation</h3><p class="body">Bedrock does not use your prompts or answers to train base models, and does not share them with model providers.</p></div></div>
+<div class="band">Private API variant: <span class="hl">execute-api endpoint</span> allow-list in front, Bedrock endpoint behind.</div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>02 / 10</p></div>
+<aside>Two endpoints appear in a private design: an execute-api interface endpoint for callers of your private REST API, and a bedrock-runtime interface endpoint for the Lambda calling the model. Check the current Bedrock data-protection page for the exact wording of the privacy commitments.</aside>
+</section>
+<section id="s3" class="slide">
+<p class="eyebrow">02 / Identity</p>
+<h2>Least privilege at every hop.</h2>
+<table class="dense" style="font-size: 26px;"><tr><th style="width: 26%;">Who</th><th style="width: 36%;">Gets</th><th style="width: 38%;">Scoped to</th></tr><tr><td>Caller</td><td><span class="mono">execute-api:Invoke</span></td><td>One API route ARN</td></tr><tr><td>Lambda role</td><td><span class="mono">bedrock:InvokeModel</span></td><td>Approved model and profile ARNs</td></tr><tr><td>Platform admin</td><td>Marketplace subscription rights</td><td>Separate from runtime invoke</td></tr><tr><td>Knowledge Base role</td><td>S3 read, vector store, embedding model</td><td>One bucket, one index</td></tr><tr><td>Organization</td><td>SCP on Regions and models</td><td>Cross-Region profiles need the profile ARN allowed</td></tr></table>
+<div class="band">This repo: the gateway template grants invoke on the <span class="hl">supplied ARNs only</span>.</div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>03 / 10</p></div>
+<aside>Subscribing to a Marketplace-backed model and invoking it are different privileges. A Region-restricting SCP can conflict with a global cross-Region inference profile; check which Regions the profile may route to.</aside>
+</section>
+<section id="s4" class="slide">
+<p class="eyebrow">03 / PII</p>
+<h2>Find it, mask it, then store less.</h2>
+<div class="flow"><div class="step tight"><p class="num">1 / DETECT</p><h3>Find PII</h3><p class="body">Guardrail sensitive-information policy, Comprehend, or Macie for S3.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">2 / MASK</p><h3>Anonymize</h3><p class="body">Replace with placeholders before the prompt and before logging.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">3 / MINIMIZE</p><h3>Store less</h3><p class="body">Keep tokens or hashes, not raw values, where you can.</p></div><div class="arrow">&rarr;</div><div class="step final tight"><p class="num">4 / EXPIRE</p><h3>Retention</h3><p class="body">Set a TTL or lifecycle rule; review who can read the store.</p></div></div>
+<div class="band">Masking before the model also keeps PII out of <span class="hl">invocation logs</span>.</div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>04 / 10</p></div>
+<aside>Detection is not perfect, so do not rely on a single detector. Mask before sending to the model if the model does not need the value. Retention rules stop old data piling up.</aside>
+</section>
+<section id="s5" class="slide">
+<p class="eyebrow">04 / Logs and retention</p>
+<h2>Logs are data too.</h2>
+<div class="cards"><div class="card"><p class="tag">INVOCATION LOGS</p><h3>Off by default</h3><p class="body">Turn on model invocation logging to CloudWatch Logs or S3. They can contain full prompts and answers.</p></div><div class="card"><p class="tag">CLOUDTRAIL</p><h3>Who called what</h3><p class="body">API activity for audit: caller identity, time, action. Not the prompt text.</p></div><div class="card"><p class="tag">TTL</p><h3>Maximum, not exact</h3><p class="body">DynamoDB TTL removes expired items typically within a couple of days. Treat it as an upper bound.</p></div></div>
+<div class="band">This repo's gateway logs request IDs and error codes, <span class="hl">not prompt text</span>.</div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>05 / 10</p></div>
+<aside>If invocation logging is enabled at account level it can capture prompts even when your own app does not log them. Restrict access to the log destination, and apply retention to it.</aside>
+</section>
+<section id="s6" class="slide">
+<p class="eyebrow">05 / Audit trail</p>
+<h2>Record enough to reconstruct an answer.</h2>
+<table class="dense" style="font-size: 26px;"><tr><th style="width: 30%;">Record</th><th style="width: 42%;">Why</th><th style="width: 28%;">Where</th></tr><tr><td>Model or profile ID</td><td>Behaviour changes by model</td><td>Answer metadata</td></tr><tr><td>Prompt version</td><td>Know which instructions ran</td><td>Prompt management ARN</td></tr><tr><td>Guardrail version</td><td>Know which policy applied</td><td>Request config</td></tr><tr><td>Source documents and version</td><td>Trace a claim to evidence</td><td>Citations, KB metadata</td></tr><tr><td>Trace ID</td><td>Join logs across services</td><td>X-Ray, correlation ID</td></tr><tr><td>Reviewer outcome</td><td>Show human oversight</td><td>Case store</td></tr></table>
+<div class="band">The goal: <span class="hl">prove</span> which approved source, prompt and policy produced one answer.</div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>06 / 10</p></div>
+<aside>This is the capstone idea from the study guide: an assistant that proves which approved source, prompt, policy and release produced its answer. Store these fields with every answer.</aside>
+</section>
+<section id="s7" class="slide">
+<p class="eyebrow">06 / Document</p>
+<h2>Models, data and lineage.</h2>
+<div class="cards"><div class="card"><p class="tag">MODEL CARD</p><h3>Intended use and risks</h3><p class="body">SageMaker Model Cards record purpose, evaluation and limitations. A content change makes a new version; approval status is separate.</p></div><div class="card"><p class="tag">LINEAGE</p><h3>Where did it come from</h3><p class="body">S3 object versions, knowledge-base data source and ingestion job, metadata files.</p></div><div class="card"><p class="tag">EVIDENCE</p><h3>Evaluation reports</h3><p class="body">Keep the golden dataset, scores and release decision with the version.</p></div></div>
+<div class="band">Verify the Model Card <span class="hl">versioning and approval</span> behaviour in the current API docs before relying on it.</div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>07 / 10</p></div>
+<aside>Task 3.3 asks you to document models, data lineage and sources. Model Cards separate content versions from approval status. The practice question on legal approval relies on that distinction; confirm exact behaviour in the documentation.</aside>
+</section>
+<section id="s8" class="slide">
+<p class="eyebrow">07 / Monitor</p>
+<h2>Detect misuse, then act automatically.</h2>
+<div class="flow"><div class="step"><p class="num">1 / DETECT</p><h3>Signals</h3><p class="body">Guardrail interventions, error rates, token spikes, odd callers.</p></div><div class="arrow">&rarr;</div><div class="step"><p class="num">2 / ALARM</p><h3>CloudWatch</h3><p class="body">Metric filters on structured logs, then alarms with thresholds.</p></div><div class="arrow">&rarr;</div><div class="step final"><p class="num">3 / ACT</p><h3>Remediate</h3><p class="body">EventBridge to Lambda or Step Functions: tighten a guardrail, roll back a prompt, disable a key.</p></div></div>
+<div class="band">Metric filters count <span class="hl">new</span> log events only; they do not backfill history.</div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>08 / 10</p></div>
+<aside>Automating the response is what separates monitoring from governance. Also monitor drift: quality metrics over time against a golden set (see slides 10 and 11).</aside>
+</section>
+<section id="s9" class="slide">
+<p class="eyebrow">08 / Responsible AI</p>
+<h2>Be transparent, fair, and honest about limits.</h2>
+<table class="dense" style="font-size: 26px;"><tr><th style="width: 22%;">Principle</th><th style="width: 48%;">Practice</th><th style="width: 30%;">In this repo</th></tr><tr><td>Transparency</td><td>Show sources, explain how the answer was made, label AI output</td><td>Citations in the KB Lab</td></tr><tr><td>Confidence</td><td>Report scores honestly; a similarity score is not a probability</td><td>Relevance scores</td></tr><tr><td>Fairness</td><td>Test across groups with a fixed rubric and dataset</td><td>Stereotyping metric, slide 05</td></tr><tr><td>Limitations</td><td>Document what the system must not be used for</td><td>Model card</td></tr><tr><td>Policy</td><td>Automated checks that enforce the rules</td><td>Guardrails, release gates</td></tr></table>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>09 / 10</p></div>
+<aside>Fairness tests must use the same approved rubric and a fixed dataset, otherwise two releases are not comparable. Document known limitations and show them to users.</aside>
+</section>
+<section id="wrap" class="slide dark">
+<p class="eyebrow">Recap</p>
+<h2>Evidence, not trust.</h2>
+<div class="cards"><div class="card"><p class="tag">ISOLATE</p><h3>Private paths</h3><p class="body">VPC endpoints, endpoint policy, scoped IAM.</p></div><div class="card"><p class="tag">MINIMIZE</p><h3>PII and logs</h3><p class="body">Mask early, log little, expire data.</p></div><div class="card"><p class="tag">PROVE</p><h3>Audit and docs</h3><p class="body">Version, source and reviewer on every answer.</p></div></div>
+<div class="band">Next: slide 08, from clean data to retrieval.</div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>10 / 10</p></div>
+<aside>Close by linking the three tasks to one question: if an auditor asks how this answer was produced, what can you show?</aside>
+</section>
+</main></div>
+<nav class="deck-controls" aria-label="Slide navigation"><button id="prev" aria-label="Previous slide">←</button><span id="counter" aria-live="polite"></span><button id="next" aria-label="Next slide">→</button></nav>
+<script>
+/* Arrow keys, PageUp/PageDown, Space, Home and End move between slides; the slide number is kept in the URL hash. */
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var stage = document.getElementById('deckStage');
+  var counter = document.getElementById('counter');
+  var current = 0;
+  function fit() {
+    var f = Math.min(innerWidth / 1920, innerHeight / 1080);
+    stage.style.transform = 'translate(' + (innerWidth - 1920 * f) / 2 + 'px,' + (innerHeight - 1080 * f) / 2 + 'px) scale(' + f + ')';
+  }
+  function show(n) {
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach(function (s, k) {
+      s.classList.toggle('active', k === current);
+      s.setAttribute('aria-hidden', String(k !== current));
+    });
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    try { history.replaceState(null, '', '#' + (current + 1)); } catch (e) {}
+  }
+  document.getElementById('prev').onclick = function () { show(current - 1); };
+  document.getElementById('next').onclick = function () { show(current + 1); };
+  addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); show(current + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); show(current - 1); }
+    else if (k === 'Home') show(0);
+    else if (k === 'End') show(slides.length - 1);
+  });
+  addEventListener('resize', fit);
+  fit();
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>

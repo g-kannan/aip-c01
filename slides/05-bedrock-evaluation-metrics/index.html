@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bedrock evaluation metrics — Eleven ways to judge an answer</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=IBM+Plex+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* === FIXED 16:9 STAGE ===
+   Slides are authored at 1920x1080 and scaled as a whole, like slides/01-bedrock-inference.
+   Generated from the deck's shared stylesheet plus one <section> per slide. */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#181a19}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:#181a19}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:#f4f2e9}
+.slide{position:absolute;left:0;top:0;width:1920px;height:1080px;box-sizing:border-box;overflow:hidden;visibility:hidden;opacity:0;pointer-events:none}
+.slide.active{visibility:visible;opacity:1;pointer-events:auto}
+aside{display:none}
+ul,ol{margin:0;padding-left:44px}
+
+/* === SLIDE LOOK (shared deck.css) === */
+/* How AWS SAM works: shared look. Palette matches slides/01-bedrock-inference.
+   Light slide #f4f2e9, dark slide #17241f, accent #e64b26 (fills, large type),
+   #b8330f for small accent text so it holds 4.5:1 on the light tone. */
+
+body { font-family: 'Nunito', Arial, sans-serif; color: #17241f; }
+h1, h2, h3, p { margin: 0; }
+
+section { display: flex; flex-direction: column; padding: 128px 128px 160px; background: #f4f2e9; color: #17241f; }
+section.dark { background: #17241f; color: #f4f2e9; }
+
+/* Type scale: 128 / 72 / 40 / 30 / 26 / 24 */
+h1 { font-family: 'Archivo', Arial, sans-serif; font-size: 128px; font-weight: 900; line-height: 1; letter-spacing: -5px; }
+h2 { font-family: 'Archivo', Arial, sans-serif; font-size: 72px; font-weight: 800; line-height: 1.05; letter-spacing: -2px; }
+h3 { font-family: 'Archivo', Arial, sans-serif; font-size: 40px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; }
+
+.eyebrow { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; margin-bottom: 28px; }
+section.dark .eyebrow { color: #f2906f; }
+.accent { color: #e8512b; }
+.hl { color: #f2906f; }
+.lede { font-size: 36px; line-height: 1.4; color: #526057; }
+section.dark .lede { color: #c5d0c8; }
+.body { font-size: 30px; line-height: 1.4; color: #17241f; }
+section.dark .body { color: #e6eae4; }
+.stripe { width: 240px; height: 12px; background: #e64b26; margin: 48px 0; }
+
+/* Footer: one pinned row */
+.footer { position: absolute; left: 128px; bottom: 56px; width: 1664px; height: 32px; display: flex; justify-content: space-between; }
+.footer p { font-size: 24px; color: #526057; }
+section.dark .footer p { color: #b9c4bc; }
+
+/* Card rows */
+.cards { display: flex; gap: 32px; margin-top: 56px; }
+.card { flex: 1; display: flex; flex-direction: column; gap: 18px; padding: 36px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.card .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.cmd { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #17241f; background: #dce9d4; padding: 12px 16px; }
+section.dark .card { background: #22332b; border-color: #3b4b43; }
+section.dark .card .tag { color: #f2906f; }
+section.dark .card .cmd { background: #2f433a; color: #f4f2e9; }
+
+/* Statement band */
+.band { margin-top: 48px; padding: 28px 36px; background: #17241f; color: #f4f2e9; font-size: 30px; line-height: 1.4; }
+section.dark .band { background: #f4f2e9; color: #17241f; }
+
+/* Pipeline of steps */
+.flow { display: flex; margin-top: 56px; }
+.step { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 32px 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.step .body { font-size: 28px; }
+.step .num { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; }
+.step.final { background: #17241f; border-color: #17241f; color: #f4f2e9; }
+.step.final .num { color: #f2906f; }
+.step.final .cmd { background: #2f433a; color: #f4f2e9; }
+.step.final .body { color: #e6eae4; }
+.arrow { width: 64px; align-self: center; text-align: center; font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 44px; font-weight: 500; color: #e64b26; }
+
+/* Two columns */
+.cols { display: flex; gap: 64px; margin-top: 56px; }
+.col { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+.list { font-size: 32px; line-height: 1.4; color: #17241f; }
+.list li { margin-top: 14px; margin-bottom: 14px; }
+
+/* Terminal block */
+.term { padding: 36px 40px; background: #17241f; }
+.ln { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 26px; line-height: 1.55; color: #f4f2e9; }
+.ln.dim { color: #a9b9ad; }
+.ln.hot { color: #f2906f; }
+.ln.i1 { padding-left: 36px; }
+.ln.i2 { padding-left: 72px; }
+
+/* Tables */
+table { margin-top: 48px; width: 1664px; font-family: 'Nunito', Arial, sans-serif; font-size: 30px; color: #17241f; border-collapse: collapse; }
+th, td { padding: 22px 24px; text-align: left; border-bottom: 1px solid #c8cec3; vertical-align: top; }
+th { color: #526057; font-weight: 700; }
+
+/* Architecture row */
+.arch { display: flex; align-items: center; margin-top: 56px; }
+.node { display: flex; flex-direction: column; gap: 10px; padding: 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.node.wide { flex: 1; }
+.node.core { background: #dce9d4; border-color: #9fbf93; }
+.node .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.node h3 { font-size: 34px; }
+.node .small { font-size: 26px; line-height: 1.35; color: #3b4a42; }
+.arch .col { flex: 1.25; gap: 24px; }
+
+/* === NAVIGATION === */
+.deck-controls{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:9px 15px;background:#17241f;color:#f4f2e9;border:1px solid #617165;border-radius:6px;font:14px 'IBM Plex Mono',monospace;white-space:nowrap;opacity:.35;transition:opacity .2s}
+.deck-controls:hover,.deck-controls:focus-within{opacity:1}
+.deck-controls button{font:inherit;color:inherit;background:none;border:1px solid #617165;border-radius:4px;padding:3px 10px;cursor:pointer}
+.deck-controls button:hover{background:#2f433a}
+
+/* === PRINT: one slide per page === */
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff}
+  .deck-viewport{position:static;overflow:visible}
+  .deck-stage{position:static;width:auto;height:auto;transform:none!important;overflow:visible}
+  .slide{position:relative;visibility:visible;opacity:1;pointer-events:auto;break-after:page;page-break-after:always}
+  .slide:last-child{break-after:auto;page-break-after:auto}
+  .deck-controls{display:none!important}
+}
+
+/* === Additions for the Agentic AI Lens cost decks === */
+.stat { display: flex; flex-direction: column; gap: 8px; padding: 26px 34px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.stat .big { font-family: 'Archivo', Arial, sans-serif; font-size: 84px; font-weight: 900; line-height: 1; letter-spacing: -3px; color: #e64b26; }
+.stat .body { font-size: 26px; line-height: 1.35; }
+section.dark .stat { background: #22332b; border-color: #3b4b43; }
+section.dark table, section.dark th, section.dark td { color: #e6eae4; border-color: #3b4b43; }
+section.dark th { color: #c5d0c8; }
+.rk { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #3b4a42; }
+.rk.hi { color: #b8330f; font-weight: 700; }
+section.dark .rk.hi { color: #f2906f; }
+td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.86em; color: #b8330f; }
+.col.narrow { flex: .7; }
+.cards.tight { gap: 24px; }
+.cards.tight .card { padding: 30px; }
+.cards.tight .body { font-size: 26px; }
+</style>
+</head>
+<body>
+<div class="deck-viewport"><main class="deck-stage" id="deckStage">
+<section id="cover" class="slide dark" style="justify-content: center;">
+<p class="eyebrow">AIP-C01 / Bedrock evaluation / 05</p>
+<h1>Eleven ways<br>to <span class="accent">judge</span> an answer.</h1>
+<div class="stripe"></div>
+<p class="lede" style="width: 1400px;">The built-in metrics an evaluator model uses in Amazon Bedrock judge-based evaluation jobs, and how to choose between them.</p>
+<div class="footer"><p>Amazon Bedrock · Judge-based evaluation metrics</p><p>01 / 08</p></div>
+<aside>Frame the talk: this covers the metrics page of the Amazon Bedrock user guide, which describes judge-based (LLM-as-a-judge) evaluation. An evaluator model reads each response and scores it against a set of metrics. There are eleven built-in metrics and you can also define your own. The page lists the metrics and what each one measures; it does not give scoring scales, so this deck does not either.</aside>
+</section>
+<section id="idea" class="slide">
+<p class="eyebrow">01 / The idea</p>
+<h2>A judge model scores each response.</h2>
+<div class="cards">
+<div class="card"><p class="tag">JUDGE</p><h3>An evaluator model</h3><p class="body">In a judge-based job, an evaluator model uses a set of metrics to characterize the models you are evaluating.</p></div>
+<div class="card"><p class="tag">BUILT-IN</p><h3>Eleven metrics</h3><p class="body">Bedrock ships metrics for quality, usefulness and responsible AI, each with a Builtin.* identifier.</p></div>
+<div class="card"><p class="tag">CUSTOM</p><h3>Define your own</h3><p class="body">When none fits, write your own metric prompt and run the job with it.</p></div>
+</div>
+<div class="band">Add a <span class="hl">reference response</span> (ground truth) to your prompt dataset and Correctness and Completeness will take it into account.</div>
+<div class="footer"><p>Amazon Bedrock · Judge-based evaluation metrics</p><p>02 / 08</p></div>
+<aside>The page opens by saying that when you run a judge-based evaluation job, the evaluator model uses a set of metrics to characterize the performance of the models being evaluated. Amazon Bedrock provides built-in metrics, and you can define your own. A reference response is optional: if the prompt dataset includes one, the evaluator considers it for Correctness and Completeness.</aside>
+</section>
+<section id="map" class="slide">
+<p class="eyebrow">02 / The eleven</p>
+<h2>Three groups of built-in metrics.</h2>
+<div class="cards">
+<div class="card"><p class="tag">CONTENT · 4</p><h3>Is it right and grounded?</h3><ul class="list" style="font-size: 28px; padding-left: 32px;"><li>Correctness</li><li>Completeness</li><li>Faithfulness</li><li>Relevance</li></ul></div>
+<div class="card"><p class="tag">USEFULNESS AND STYLE · 4</p><h3>Is it good to use?</h3><ul class="list" style="font-size: 28px; padding-left: 32px;"><li>Helpfulness</li><li>Logical coherence</li><li>Following instructions</li><li>Professional style and tone</li></ul></div>
+<div class="card"><p class="tag">RESPONSIBLE AI · 3</p><h3>Is it safe?</h3><ul class="list" style="font-size: 28px; padding-left: 32px;"><li>Harmfulness</li><li>Stereotyping</li><li>Refusal</li></ul></div>
+</div>
+<div class="band">The grouping is this deck's, to make the list easier to remember. The page lists the eleven <span class="hl">without groups</span>.</div>
+<div class="footer"><p>Amazon Bedrock · Judge-based evaluation metrics</p><p>03 / 08</p></div>
+<aside>The Bedrock page presents the eleven metrics as a flat list. To make them easier to learn, this deck groups them by what question they answer: content metrics ask whether the answer is right and grounded, usefulness and style metrics ask whether it is good to use, and responsible AI metrics ask whether it is safe. The grouping is a teaching aid, not an AWS category.</aside>
+</section>
+<section id="content" class="slide">
+<p class="eyebrow">03 / Content</p>
+<h2>Is the answer right and grounded?</h2>
+<table style="font-size: 26px;">
+<tr><th style="width: 20%;">Metric</th><th style="width: 32%;">Identifier</th><th style="width: 48%;">What it measures</th></tr>
+<tr><td>Correctness</td><td><span class="mono">Builtin.Correctness</span></td><td>Whether the response is correct. Considers a reference response if supplied.</td></tr>
+<tr><td>Completeness</td><td><span class="mono">Builtin.Completeness</span></td><td>How well it answers every question in the prompt. Also uses a reference response.</td></tr>
+<tr><td>Faithfulness</td><td><span class="mono">Builtin.Faithfulness</span></td><td>Whether it contains information not found in the prompt, so how faithful it is to the available context.</td></tr>
+<tr><td>Relevance</td><td><span class="mono">Builtin.Relevance</span></td><td>How relevant the answer is to the prompt.</td></tr>
+</table>
+<div class="footer"><p>Amazon Bedrock · Judge-based evaluation metrics</p><p>04 / 08</p></div>
+<aside>Correctness and Completeness both consider a reference response when one is provided in the prompt dataset. Faithfulness checks for information that is not found in the prompt, which makes it the metric that catches invented content when you supply context, as in retrieval-augmented prompts. Relevance asks only whether the answer is relevant to the prompt.</aside>
+</section>
+<section id="usefulness" class="slide">
+<p class="eyebrow">04 / Usefulness and style</p>
+<h2>Is the answer good to use?</h2>
+<table style="font-size: 26px;">
+<tr><th style="width: 22%;">Metric</th><th style="width: 34%;">Identifier</th><th style="width: 44%;">What it measures</th></tr>
+<tr><td>Helpfulness</td><td><span class="mono">Builtin.Helpfulness</span></td><td>Follows instructions, is sensible and coherent, and anticipates implicit needs.</td></tr>
+<tr><td>Logical coherence</td><td><span class="mono">Builtin.Coherence</span></td><td>Logical gaps, inconsistencies and contradictions in the response.</td></tr>
+<tr><td>Following instructions</td><td><span class="mono">Builtin.FollowingInstructions</span></td><td>How well it respects the exact directions in the prompt.</td></tr>
+<tr><td>Professional style and tone</td><td><span class="mono">Builtin.ProfessionalStyleAndTone</span></td><td>Whether style, formatting and tone suit a professional setting.</td></tr>
+</table>
+<div class="band">Note the identifier: Logical coherence is <span class="hl">Builtin.Coherence</span>.</div>
+<div class="footer"><p>Amazon Bedrock · Judge-based evaluation metrics</p><p>05 / 08</p></div>
+<aside>Helpfulness is the broadest of the four: the page says it factors in whether the response follows the provided instructions, whether it is sensible and coherent, and whether it anticipates implicit needs and expectations. Logical coherence looks for logical gaps, inconsistencies and contradictions, and its identifier is Builtin.Coherence, which is easy to mistype. Following instructions is narrower than Helpfulness: it looks at whether the exact directions in the prompt are respected.</aside>
+</section>
+<section id="responsible" class="slide">
+<p class="eyebrow">05 / Responsible AI</p>
+<h2>Is the answer safe?</h2>
+<table style="font-size: 26px;">
+<tr><th style="width: 18%;">Metric</th><th style="width: 30%;">Identifier</th><th style="width: 52%;">What it measures</th></tr>
+<tr><td>Harmfulness</td><td><span class="mono">Builtin.Harmfulness</span></td><td>Whether the response contains harmful content.</td></tr>
+<tr><td>Stereotyping</td><td><span class="mono">Builtin.Stereotyping</span></td><td>Whether it contains stereotypes of any kind, positive or negative.</td></tr>
+<tr><td>Refusal</td><td><span class="mono">Builtin.Refusal</span></td><td>Whether it directly declines to answer, or rejects the request with reasons.</td></tr>
+</table>
+<div class="band">Read Refusal against the prompt: declining a harmful request is expected, <span class="hl">declining a harmless one is not</span>.</div>
+<div class="footer"><p>Amazon Bedrock · Judge-based evaluation metrics</p><p>06 / 08</p></div>
+<aside>Stereotyping covers stereotypes of any kind, and the page is explicit that positive stereotypes count as well as negative ones. Refusal determines whether the response directly declines to answer or rejects the request with reasons. The page does not say whether a refusal is good or bad, because that depends on the prompt; the interpretation on the slide is this deck's guidance, not text from the page.</aside>
+</section>
+<section id="choose" class="slide">
+<p class="eyebrow">06 / Choosing</p>
+<h2>Pick the metric that matches your question.</h2>
+<table style="font-size: 26px;">
+<tr><th style="width: 52%;">If you are asking</th><th style="width: 48%;">Start with</th></tr>
+<tr><td>Did it get the answer right?</td><td>Correctness, with a reference response</td></tr>
+<tr><td>Did it answer every part of the question?</td><td>Completeness</td></tr>
+<tr><td>Did it add facts that are not in the context?</td><td>Faithfulness</td></tr>
+<tr><td>Did it follow the format and rules I set?</td><td>Following instructions</td></tr>
+<tr><td>Does it sound right for a business setting?</td><td>Professional style and tone</td></tr>
+<tr><td>Is it free of harm and stereotypes?</td><td>Harmfulness and Stereotyping</td></tr>
+</table>
+<div class="footer"><p>Amazon Bedrock · Judge-based evaluation metrics</p><p>07 / 08</p></div>
+<aside>This mapping is the deck's own guidance, built from the metric definitions on the Bedrock page. It is a starting point: a judge job can run several metrics at once, so pair a content metric with at least one safety metric for anything user-facing. Use a reference response when you have ground truth, because Correctness and Completeness both take it into account.</aside>
+</section>
+<section id="wrap" class="slide dark">
+<p class="eyebrow">Recap</p>
+<h2>Built-in first, custom when needed.</h2>
+<div class="cards">
+<div class="card"><p class="tag">BUILT-IN</p><h3>11 identifiers</h3><p class="body">Each is a Builtin.* name. Pick the few that match what you need to know.</p></div>
+<div class="card"><p class="tag">REFERENCE</p><h3>Add ground truth</h3><p class="body">Put a reference response in the prompt dataset for Correctness and Completeness.</p></div>
+<div class="card"><p class="tag">CUSTOM</p><h3>Your own metric</h3><p class="body">The guide covers a custom metric prompt format, a judge job with custom metrics and the dataset format.</p></div>
+</div>
+<div class="band">Source: Amazon Bedrock User Guide, <span class="hl">Use metrics to understand model performance</span>.</div>
+<div class="footer"><p>Amazon Bedrock · Judge-based evaluation metrics</p><p>08 / 08</p></div>
+<aside>Close on the practical points. Start with the built-in metrics that match your question. Add a reference response where you have ground truth. When none of the built-in metrics describes what you care about, the page links to three further guide pages: creating a prompt for a custom metric, creating a judge job with custom metrics, and the prompt dataset format for judge jobs. Those pages were not read for this deck, so check them for the details. The page also does not describe scoring scales, so look at a job's results to see how scores are reported.</aside>
+</section>
+</main></div>
+<nav class="deck-controls" aria-label="Slide navigation"><button id="prev" aria-label="Previous slide">←</button><span id="counter" aria-live="polite"></span><button id="next" aria-label="Next slide">→</button></nav>
+<script>
+/* Arrow keys, PageUp/PageDown, Space, Home and End move between slides; the slide number is kept in the URL hash. */
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var stage = document.getElementById('deckStage');
+  var counter = document.getElementById('counter');
+  var current = 0;
+  function fit() {
+    var f = Math.min(innerWidth / 1920, innerHeight / 1080);
+    stage.style.transform = 'translate(' + (innerWidth - 1920 * f) / 2 + 'px,' + (innerHeight - 1080 * f) / 2 + 'px) scale(' + f + ')';
+  }
+  function show(n) {
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach(function (s, k) {
+      s.classList.toggle('active', k === current);
+      s.setAttribute('aria-hidden', String(k !== current));
+    });
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    try { history.replaceState(null, '', '#' + (current + 1)); } catch (e) {}
+  }
+  document.getElementById('prev').onclick = function () { show(current - 1); };
+  document.getElementById('next').onclick = function () { show(current + 1); };
+  addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); show(current + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); show(current - 1); }
+    else if (k === 'Home') show(0);
+    else if (k === 'End') show(slides.length - 1);
+  });
+  addEventListener('resize', fit);
+  fit();
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>

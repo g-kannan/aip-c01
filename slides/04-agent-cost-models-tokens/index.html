@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent model and token cost — Right model, right tokens (AGENTCOST02)</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=IBM+Plex+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* === FIXED 16:9 STAGE ===
+   Slides are authored at 1920x1080 and scaled as a whole, like slides/01-bedrock-inference.
+   Generated from the deck's shared stylesheet plus one <section> per slide. */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#181a19}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:#181a19}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:#f4f2e9}
+.slide{position:absolute;left:0;top:0;width:1920px;height:1080px;box-sizing:border-box;overflow:hidden;visibility:hidden;opacity:0;pointer-events:none}
+.slide.active{visibility:visible;opacity:1;pointer-events:auto}
+aside{display:none}
+ul,ol{margin:0;padding-left:44px}
+
+/* === SLIDE LOOK (shared deck.css) === */
+/* How AWS SAM works: shared look. Palette matches slides/01-bedrock-inference.
+   Light slide #f4f2e9, dark slide #17241f, accent #e64b26 (fills, large type),
+   #b8330f for small accent text so it holds 4.5:1 on the light tone. */
+
+body { font-family: 'Nunito', Arial, sans-serif; color: #17241f; }
+h1, h2, h3, p { margin: 0; }
+
+section { display: flex; flex-direction: column; padding: 128px 128px 160px; background: #f4f2e9; color: #17241f; }
+section.dark { background: #17241f; color: #f4f2e9; }
+
+/* Type scale: 128 / 72 / 40 / 30 / 26 / 24 */
+h1 { font-family: 'Archivo', Arial, sans-serif; font-size: 128px; font-weight: 900; line-height: 1; letter-spacing: -5px; }
+h2 { font-family: 'Archivo', Arial, sans-serif; font-size: 72px; font-weight: 800; line-height: 1.05; letter-spacing: -2px; }
+h3 { font-family: 'Archivo', Arial, sans-serif; font-size: 40px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; }
+
+.eyebrow { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; margin-bottom: 28px; }
+section.dark .eyebrow { color: #f2906f; }
+.accent { color: #e8512b; }
+.hl { color: #f2906f; }
+.lede { font-size: 36px; line-height: 1.4; color: #526057; }
+section.dark .lede { color: #c5d0c8; }
+.body { font-size: 30px; line-height: 1.4; color: #17241f; }
+section.dark .body { color: #e6eae4; }
+.stripe { width: 240px; height: 12px; background: #e64b26; margin: 48px 0; }
+
+/* Footer: one pinned row */
+.footer { position: absolute; left: 128px; bottom: 56px; width: 1664px; height: 32px; display: flex; justify-content: space-between; }
+.footer p { font-size: 24px; color: #526057; }
+section.dark .footer p { color: #b9c4bc; }
+
+/* Card rows */
+.cards { display: flex; gap: 32px; margin-top: 56px; }
+.card { flex: 1; display: flex; flex-direction: column; gap: 18px; padding: 36px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.card .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.cmd { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #17241f; background: #dce9d4; padding: 12px 16px; }
+section.dark .card { background: #22332b; border-color: #3b4b43; }
+section.dark .card .tag { color: #f2906f; }
+section.dark .card .cmd { background: #2f433a; color: #f4f2e9; }
+
+/* Statement band */
+.band { margin-top: 48px; padding: 28px 36px; background: #17241f; color: #f4f2e9; font-size: 30px; line-height: 1.4; }
+section.dark .band { background: #f4f2e9; color: #17241f; }
+
+/* Pipeline of steps */
+.flow { display: flex; margin-top: 56px; }
+.step { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 32px 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.step .body { font-size: 28px; }
+.step .num { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; }
+.step.final { background: #17241f; border-color: #17241f; color: #f4f2e9; }
+.step.final .num { color: #f2906f; }
+.step.final .cmd { background: #2f433a; color: #f4f2e9; }
+.step.final .body { color: #e6eae4; }
+.arrow { width: 64px; align-self: center; text-align: center; font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 44px; font-weight: 500; color: #e64b26; }
+
+/* Two columns */
+.cols { display: flex; gap: 64px; margin-top: 56px; }
+.col { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+.list { font-size: 32px; line-height: 1.4; color: #17241f; }
+.list li { margin-top: 14px; margin-bottom: 14px; }
+
+/* Terminal block */
+.term { padding: 36px 40px; background: #17241f; }
+.ln { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 26px; line-height: 1.55; color: #f4f2e9; }
+.ln.dim { color: #a9b9ad; }
+.ln.hot { color: #f2906f; }
+.ln.i1 { padding-left: 36px; }
+.ln.i2 { padding-left: 72px; }
+
+/* Tables */
+table { margin-top: 48px; width: 1664px; font-family: 'Nunito', Arial, sans-serif; font-size: 30px; color: #17241f; border-collapse: collapse; }
+th, td { padding: 22px 24px; text-align: left; border-bottom: 1px solid #c8cec3; vertical-align: top; }
+th { color: #526057; font-weight: 700; }
+
+/* Architecture row */
+.arch { display: flex; align-items: center; margin-top: 56px; }
+.node { display: flex; flex-direction: column; gap: 10px; padding: 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.node.wide { flex: 1; }
+.node.core { background: #dce9d4; border-color: #9fbf93; }
+.node .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.node h3 { font-size: 34px; }
+.node .small { font-size: 26px; line-height: 1.35; color: #3b4a42; }
+.arch .col { flex: 1.25; gap: 24px; }
+
+/* === NAVIGATION === */
+.deck-controls{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:9px 15px;background:#17241f;color:#f4f2e9;border:1px solid #617165;border-radius:6px;font:14px 'IBM Plex Mono',monospace;white-space:nowrap;opacity:.35;transition:opacity .2s}
+.deck-controls:hover,.deck-controls:focus-within{opacity:1}
+.deck-controls button{font:inherit;color:inherit;background:none;border:1px solid #617165;border-radius:4px;padding:3px 10px;cursor:pointer}
+.deck-controls button:hover{background:#2f433a}
+
+/* === PRINT: one slide per page === */
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff}
+  .deck-viewport{position:static;overflow:visible}
+  .deck-stage{position:static;width:auto;height:auto;transform:none!important;overflow:visible}
+  .slide{position:relative;visibility:visible;opacity:1;pointer-events:auto;break-after:page;page-break-after:always}
+  .slide:last-child{break-after:auto;page-break-after:auto}
+  .deck-controls{display:none!important}
+}
+
+/* === Additions for the Agentic AI Lens cost decks === */
+.stat { display: flex; flex-direction: column; gap: 8px; padding: 26px 34px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.stat .big { font-family: 'Archivo', Arial, sans-serif; font-size: 84px; font-weight: 900; line-height: 1; letter-spacing: -3px; color: #e64b26; }
+.stat .body { font-size: 26px; line-height: 1.35; }
+section.dark .stat { background: #22332b; border-color: #3b4b43; }
+section.dark table, section.dark th, section.dark td { color: #e6eae4; border-color: #3b4b43; }
+section.dark th { color: #c5d0c8; }
+.rk { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #3b4a42; }
+.rk.hi { color: #b8330f; font-weight: 700; }
+section.dark .rk.hi { color: #f2906f; }
+td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.86em; color: #b8330f; }
+.col.narrow { flex: .7; }
+.cards.tight { gap: 24px; }
+.cards.tight .card { padding: 30px; }
+.cards.tight .body { font-size: 26px; }
+</style>
+</head>
+<body>
+<div class="deck-viewport"><main class="deck-stage" id="deckStage">
+<section id="cover" class="slide dark" style="justify-content: center;">
+<p class="eyebrow">AIP-C01 / Agentic AI Lens / 04</p>
+<h1>Right model.<br>Right <span class="accent">tokens</span>.</h1>
+<div class="stripe"></div>
+<p class="lede" style="width: 1400px;">AGENTCOST02: how do you optimize agent model invocation and token consumption costs? Four best practices from the AWS Well-Architected Agentic AI Lens.</p>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>01 / 14</p></div>
+<aside>Frame the talk: foundation model spend can dominate an agentic budget. This deck covers what each call costs: which model, how many tokens, whether you needed to call at all, and whether a customized model would be cheaper. The previous deck (AGENTCOST01) covers how many calls the reasoning loop makes.</aside>
+</section>
+<section id="question" class="slide">
+<p class="eyebrow">01 / The question</p>
+<h2>Model calls dominate the bill.</h2>
+<div class="cards">
+<div class="card"><p class="tag">MATCH</p><h3>Fit model to task</h3><p class="body">Cheap models for routine classification and formatting. Premium models only where the reasoning needs them.</p></div>
+<div class="card"><p class="tag">TRIM</p><h3>Shrink every call</h3><p class="body">Keep prompts, tool descriptions and output length to the minimum that preserves decision quality.</p></div>
+<div class="card"><p class="tag">REUSE</p><h3>Cache and specialize</h3><p class="body">Serve repeats from caches. Run high-volume recurring tasks on customized models.</p></div>
+</div>
+<div class="band">Measure <span class="hl">cost per correct response</span>, token use, cache hit rate and escalation rate, per model tier.</div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>02 / 14</p></div>
+<aside>The Lens says teams that right-size model selection to task complexity and optimize token consumption per invocation can reduce cost without sacrificing decision quality. The common issues are: every call defaults to the most capable model, system prompts and tool catalogs grow unreviewed, caching is treated as one-time setup, customization is pursued on low-volume work where training never pays back, and cost is tracked only in aggregate.</aside>
+</section>
+<section id="map" class="slide">
+<p class="eyebrow">02 / The four practices</p>
+<h2>One question, four levers.</h2>
+<table style="font-size: 28px;">
+<tr><th style="width: 15%;">ID</th><th style="width: 33%;">Practice</th><th style="width: 12%;">Risk</th><th style="width: 40%;">The lever</th></tr>
+<tr><td><span class="mono">BP01</span></td><td>Tiered model selection</td><td><span class="rk hi">High</span></td><td>Cheapest capable model, escalate on doubt</td></tr>
+<tr><td><span class="mono">BP02</span></td><td>Efficient prompts</td><td><span class="rk">Medium</span></td><td>Compress, load tools dynamically, cap output</td></tr>
+<tr><td><span class="mono">BP03</span></td><td>Intelligent caching</td><td><span class="rk hi">High</span></td><td>Prompt, semantic and plan-template caches</td></tr>
+<tr><td><span class="mono">BP04</span></td><td>Model customization</td><td><span class="rk hi">High</span></td><td>Smaller specialist for high-volume tasks</td></tr>
+</table>
+<div class="band">Three of the four are rated <span class="hl">High</span> risk if not established.</div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>03 / 14</p></div>
+<aside>Each is a numbered best practice under AGENTCOST02. The risk column is the Lens rating for not establishing the practice: High for tiered model selection, caching and customization, Medium for prompt engineering.</aside>
+</section>
+<section id="bp01-tiers" class="slide">
+<p class="eyebrow">BP01 / Tiered selection</p>
+<h2>Classify the task, then pick the tier.</h2>
+<table style="font-size: 28px;">
+<tr><th style="width: 18%;">Tier</th><th style="width: 52%;">Typical work</th><th style="width: 30%;">Example score</th></tr>
+<tr><td>Simple</td><td>Classification, format conversion, intent extraction</td><td><span class="mono">below 0.3</span></td></tr>
+<tr><td>Moderate</td><td>Multi-step reasoning, summarization</td><td><span class="mono">0.3 to 0.7</span></td></tr>
+<tr><td>Complex</td><td>Open-ended analysis, multi-constraint optimization</td><td><span class="mono">above 0.7</span></td></tr>
+</table>
+<div class="band">A pre-classifier scores input length, format, constraint count and reasoning depth. It must <span class="hl">cost less than the tier price gap</span>.</div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>04 / 14</p></div>
+<aside>Treating every invocation the same means paying complex-class prices for lightweight work. The pre-classifier can be rules or a small model. The score thresholds shown are the example values from the Lens, so tune them to your own task distribution. Also route document extraction to Amazon Bedrock Data Automation and audio interactions to Amazon Nova Sonic instead of sending raw images or audio to an expensive general-purpose model.</aside>
+</section>
+<section id="bp01-cascade" class="slide">
+<p class="eyebrow">BP01 / Cascade</p>
+<h2>Escalate on doubt, not by default.</h2>
+<div class="flow">
+<div class="step"><p class="num">01</p><h3>Try low</h3><p class="body">The cheapest capable model answers and self-assesses a confidence score.</p></div>
+<p class="arrow">→</p>
+<div class="step"><p class="num">02</p><h3>Escalate</h3><p class="body">Below threshold, move up one tier. Do not retry at the same tier.</p></div>
+<p class="arrow">→</p>
+<div class="step"><p class="num">03</p><h3>Fall back</h3><p class="body">Primary, secondary, tertiary models. Timeout or failure moves up a tier.</p></div>
+<p class="arrow">→</p>
+<div class="step final"><p class="num">04</p><h3>Review</h3><p class="body">Quarterly: inspect escalation rates in Cost Explorer and CloudWatch.</p></div>
+</div>
+<div class="band">Benchmark with <span class="hl">AgentCore Evaluations</span> on your own task mix, measuring cost per correct response.</div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>05 / 14</p></div>
+<aside>Cascading means the lower-tier model returns a self-assessed confidence and the request escalates only below the configured threshold. Fallback chains per task category move up a tier on timeout or failure instead of retrying the same model. Review routing policies quarterly using AWS Cost Explorer and CloudWatch dashboards, and adjust tiers when thresholds look mis-tuned. Specialized models can be both more accurate and cheaper than general-purpose ones for domain tasks, so include them in the benchmark.</aside>
+</section>
+<section id="bp01-pricing" class="slide">
+<p class="eyebrow">BP01 / Pricing tier</p>
+<h2>Pricing tier is a separate dial from model size.</h2>
+<div class="cards tight">
+<div class="card"><p class="tag">FLEX</p><h3>Dev and test</h3><p class="body">For development and testing.</p></div>
+<div class="card"><p class="tag">STANDARD</p><h3>Production</h3><p class="body">For production agents.</p></div>
+<div class="card"><p class="tag">PRIORITY</p><h3>Latency-critical</h3><p class="body">Only for user-facing interactions that need it.</p></div>
+<div class="card"><p class="tag">BATCH</p><h3>Up to 50% off</h3><p class="body">Reports, enrichment and offline evaluation.</p></div>
+<div class="card"><p class="tag">RESERVED</p><h3>30 to 50% off</h3><p class="body">Commit for steady, high-volume workloads.</p></div>
+</div>
+<div class="band">Use <span class="hl">Amazon Bedrock batch inference</span> for anything that does not need an immediate answer.</div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>06 / 14</p></div>
+<aside>Select the pricing tier per environment: Flex for development and testing, Standard for production, and Priority only for latency-sensitive user-facing agents. Batch inference can save up to 50 percent for non-time-sensitive work such as report generation, data enrichment and offline evaluation. Reserved Tier commitments are quoted at 30 to 50 percent savings for consistent high-volume workloads. Treat the percentages as the Lens's guidance and check current Bedrock pricing before you plan around them.</aside>
+</section>
+<section id="bp02" class="slide">
+<p class="eyebrow">BP02 / Prompt engineering</p>
+<h2>Every prompt token is paid on every call.</h2>
+<div class="cols">
+<div class="col narrow">
+<div class="card"><p class="tag">SUGGESTED CONTEXT SPLIT</p>
+<table style="margin-top: 0; width: 100%; font-size: 28px;">
+<tr><td>System prompt</td><td><span class="mono">20 to 30%</span></td></tr>
+<tr><td>User context</td><td><span class="mono">30 to 40%</span></td></tr>
+<tr><td>Few-shot examples</td><td><span class="mono">10 to 20%</span></td></tr>
+<tr><td>Agent scratchpad</td><td><span class="mono">20 to 30%</span></td></tr>
+</table></div>
+</div>
+<div class="col">
+<ul class="list" style="font-size: 30px;">
+<li>Replace verbose instructions with structured directives.</li>
+<li>Go zero-shot first. Add two or three examples chosen by semantic similarity.</li>
+<li>State the output format and maximum length, and set a hard token cap.</li>
+</ul>
+</div>
+</div>
+<div class="band">Compression is a <span class="hl">fixed-cost cut</span>: it compounds across every invocation.</div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>07 / 14</p></div>
+<aside>Audit prompts with AgentCore Observability to measure token footprints, then tighten role definitions and remove redundancy. The context split is the suggested allocation from the Lens, not a rule: system prompt 20 to 30 percent, user context 30 to 40, few-shot examples 10 to 20, agent scratchpad 20 to 30. Explicit formatting directives control output cost, and model-specific token limit parameters put a hard cap on response size.</aside>
+</section>
+<section id="bp02-steps" class="slide">
+<p class="eyebrow">BP02 / Steps</p>
+<h2>Six steps to a lean prompt.</h2>
+<table style="font-size: 24px; margin-top: 36px;">
+<tr><th style="width: 4%;">#</th><th style="width: 29%;">Step</th><th style="width: 40%;">What to do</th><th style="width: 27%;">AWS service</th></tr>
+<tr><td>1</td><td>Audit and compress</td><td>Measure token footprint first</td><td><span class="mono">AgentCore Observability</span></td></tr>
+<tr><td>2</td><td>Load tools dynamically</td><td>Show only relevant tools per call</td><td><span class="mono">Gateway Semantic Tool Selection</span></td></tr>
+<tr><td>3</td><td>Constrain output</td><td>Format directives plus token limits</td><td>Model parameters</td></tr>
+<tr><td>4</td><td>Manage multi-turn state</td><td>No hand-built history</td><td><span class="mono">AgentCore Memory</span></td></tr>
+<tr><td>5</td><td>Trim few-shot examples</td><td>Two or three, by similarity</td><td><span class="mono">Amazon S3</span> library</td></tr>
+<tr><td>6</td><td>Version prompts</td><td>Tokens and success rate per version</td><td><span class="mono">Cost Explorer</span> review</td></tr>
+</table>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>08 / 14</p></div>
+<aside>Step two is where tool catalogs stop growing the fixed cost: AgentCore Gateway uses MCP-based Semantic Tool Selection to present only relevant tools, and tool descriptions are compressed to a name, a one-sentence description and a concise parameter schema. Step five loads examples dynamically from an Amazon S3 hosted library by semantic similarity. Step six treats prompts as versioned artifacts, recording token count, task success rate and cost per task for each version, with a monthly review of cumulative savings against cost-per-task targets.</aside>
+</section>
+<section id="bp03" class="slide">
+<p class="eyebrow">BP03 / Caching</p>
+<h2>Cache at three layers.</h2>
+<div class="cards">
+<div class="card"><p class="tag">PROMPT CACHE</p><h3>Stable prefix</h3><p class="body">Bedrock prompt caching for system prompts and tool descriptions. Dynamic content breaks the prefix, so move it out.</p></div>
+<div class="card"><p class="tag">SEMANTIC CACHE</p><h3>Equivalent requests</h3><p class="body">Embed the request, search OpenSearch Serverless, and reuse the answer above a similarity threshold such as cosine 0.95.</p></div>
+<div class="card"><p class="tag">PLAN TEMPLATES</p><h3>Recurring plans</h3><p class="body">Key plans by task type and parameter signature, then fill in current parameters instead of re-planning.</p></div>
+</div>
+<div class="band">Each layer fails differently: <span class="hl">broken prefixes, weak thresholds, one-size TTLs</span>.</div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>09 / 14</p></div>
+<aside>Prompt caching is the highest-impact layer for large stable system prompts; turn it on for agents whose system prompts exceed about 1,000 tokens. A higher similarity threshold reduces false positives but also reduces hit rate, so set it per task type. Plan template examples from the Lens are an onboarding checklist, a support triage decomposition and a reporting workflow plan.</aside>
+</section>
+<section id="bp03-keep" class="slide">
+<p class="eyebrow">BP03 / Keep it honest</p>
+<h2>Caches need invalidation and alarms.</h2>
+<div class="cols">
+<div class="col">
+<ul class="list" style="font-size: 30px;">
+<li>Purge entries on events when source data changes, so aggressive caching is safe for moderately volatile data.</li>
+<li>Set a TTL per task type, so time-sensitive data is not served stale.</li>
+<li>Accept quantized embeddings only if task success drops less than 2%.</li>
+<li>Alarm on hit rate per layer in CloudWatch.</li>
+</ul>
+</div>
+<div class="col narrow">
+<div class="card"><p class="tag">ANTI-PATTERNS</p><p class="body">Identical prompts at full input price.</p><p class="body">Exact-match lookups that miss rephrased requests.</p><p class="body">One TTL for every task.</p></div>
+</div>
+</div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>10 / 14</p></div>
+<aside>Event-driven invalidation purges entries when source data changes. Build CloudWatch dashboards and alarms for hit rates across the prompt, semantic and plan-template caches, and use AWS Cost Explorer for the savings view. AgentCore Memory session identifiers also keep multi-turn state without manual history concatenation, which is a related way to stop re-sending the same tokens.</aside>
+</section>
+<section id="bp04-math" class="slide">
+<p class="eyebrow">BP04 / Customization</p>
+<h2>Customize only when it pays back.</h2>
+<div class="cols">
+<div class="col">
+<div class="term">
+<p class="ln dim">break-even (months) =</p>
+<p class="ln hot">(training + quarterly refresh × quarters)</p>
+<p class="ln hot">÷ monthly inference savings</p>
+<p class="ln dim">&nbsp;</p>
+<p class="ln">$5,000 run, $400/month saved</p>
+<p class="ln hot">→ break-even at month 13</p>
+</div>
+<p class="body">Acceptable for a multi-year workload, not for an experiment.</p>
+</div>
+<div class="col narrow">
+<div class="stat"><p class="big">$500+</p><p class="body">monthly inference cost for the task</p></div>
+<div class="stat"><p class="big">10k+</p><p class="body">invocations a month: typically 6 to 12 months to break even</p></div>
+</div>
+</div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>11 / 14</p></div>
+<aside>Start with the break-even analysis. The Lens example says monthly inference cost above 500 dollars and volume above 10,000 invocations a month typically reaches break-even within 6 to 12 months. The worked example in the formula is a 5,000 dollar training run saving 400 dollars a month: 5,000 divided by 400 is 12.5, so it breaks even at month 13, ignoring refresh cost. Customization pays off when volume and task stability are both high, and it does not pay off on low-volume categories.</aside>
+</section>
+<section id="bp04-flow" class="slide">
+<p class="eyebrow">BP04 / Pipeline</p>
+<h2>Treat customization as a pipeline.</h2>
+<div class="flow">
+<div class="step"><p class="num">01</p><h3>Curate</h3><p class="body">500 to 1,000 examples per task from filtered production logs: no errors, p50 to p90 latency. Store in S3.</p></div>
+<p class="arrow">→</p>
+<div class="step"><p class="num">02</p><h3>Train</h3><p class="body">Distill a large teacher into a small student. Bedrock customization, or SageMaker AI with QLoRA.</p></div>
+<p class="arrow">→</p>
+<div class="step"><p class="num">03</p><h3>A/B test</h3><p class="body">Custom Model Import, then split traffic in AgentCore Runtime. Score both arms with Evaluations.</p></div>
+<p class="arrow">→</p>
+<div class="step final"><p class="num">04</p><h3>Refresh</h3><p class="body">Quarterly retrain. A/B validation is the promotion gate.</p></div>
+</div>
+<div class="band">Track latency, token cost and quality side by side, so savings never <span class="hl">mask a quality drop</span>.</div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>12 / 14</p></div>
+<aside>Training data comes from filtered production logs of high-confidence, successful completions, with a sample reviewed manually; the Lens warns against fine-tuning on synthetic data that misrepresents production. QLoRA quantizes base weights to four bits and trains only adapters, which makes single-GPU fine-tuning practical. Options named are Amazon Bedrock model customization jobs, Amazon SageMaker AI Training Jobs with QLoRA, and Amazon Bedrock Custom Model Import. Customization is a pipeline, not a one-off project: schedule quarterly refreshes and gate promotion on A/B validation so drift does not compound silently.</aside>
+</section>
+<section id="anti" class="slide dark">
+<p class="eyebrow">Watch for these</p>
+<h2>Anti-patterns across the four.</h2>
+<div class="cards tight">
+<div class="card"><p class="tag">BP01</p><h3>One big model</h3><p class="body">Largest model for every task. Hard-coded assignments. No per-tier cost view.</p></div>
+<div class="card"><p class="tag">BP02</p><h3>Bloated prompts</h3><p class="body">Long personas. Every tool on every call. Unbounded output. Unversioned prompts.</p></div>
+<div class="card"><p class="tag">BP03</p><h3>Naive caching</h3><p class="body">Full-price repeats. Exact-match only. A single TTL for all tasks.</p></div>
+<div class="card"><p class="tag">BP04</p><h3>Premature training</h3><p class="body">Synthetic data. Low-volume tasks. One-off projects. Traffic moved without A/B tests.</p></div>
+</div>
+<div class="band">Aggregate-only cost tracking hides these. <b>Break costs down by model tier.</b></div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>13 / 14</p></div>
+<aside>Read across the four. BP01 uses the largest model everywhere and cannot see cost by tier. BP02 treats prompts as uncontrolled strings. BP03 caches by exact match or with one TTL. BP04 customizes models for work that will never repay the training cost or without validating quality.</aside>
+</section>
+<section id="metrics" class="slide dark">
+<p class="eyebrow">Operate</p>
+<h2>Track four numbers per model tier.</h2>
+<table style="font-size: 28px;">
+<tr><th style="width: 38%;">Metric</th><th style="width: 44%;">What it tells you</th><th style="width: 18%;">Practice</th></tr>
+<tr><td>Cost per correct response</td><td>Whether a tier is worth its price</td><td><span class="mono">BP01</span></td></tr>
+<tr><td>Escalation rate</td><td>Whether tier thresholds are mis-tuned</td><td><span class="mono">BP01</span></td></tr>
+<tr><td>Cost per task, by prompt version</td><td>Whether compression is paying off</td><td><span class="mono">BP02</span></td></tr>
+<tr><td>Cache hit rate, per layer</td><td>Whether caches are going stale</td><td><span class="mono">BP03</span></td></tr>
+</table>
+<div class="band">Related: AGENTCOST01, AGENTCOST03, AGENTCOST05. Source: AWS Well-Architected Agentic AI Lens.</div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>14 / 14</p></div>
+<aside>Close on measurement. The Lens names cost per correct response, token consumption, cache hit rate and cascade escalation rate as the things to track per model tier. For customized models, add inference savings alongside decision quality so a cheaper tier never hides a quality loss. The best practices cross-reference AGENTCOST01, AGENTCOST03 and AGENTCOST05; see the related list on each practice page. Source for the whole deck: the AGENTCOST02 pages of the AWS Well-Architected Framework Agentic AI Lens.</aside>
+</section>
+</main></div>
+<nav class="deck-controls" aria-label="Slide navigation"><button id="prev" aria-label="Previous slide">←</button><span id="counter" aria-live="polite"></span><button id="next" aria-label="Next slide">→</button></nav>
+<script>
+/* Arrow keys, PageUp/PageDown, Space, Home and End move between slides; the slide number is kept in the URL hash. */
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var stage = document.getElementById('deckStage');
+  var counter = document.getElementById('counter');
+  var current = 0;
+  function fit() {
+    var f = Math.min(innerWidth / 1920, innerHeight / 1080);
+    stage.style.transform = 'translate(' + (innerWidth - 1920 * f) / 2 + 'px,' + (innerHeight - 1080 * f) / 2 + 'px) scale(' + f + ')';
+  }
+  function show(n) {
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach(function (s, k) {
+      s.classList.toggle('active', k === current);
+      s.setAttribute('aria-hidden', String(k !== current));
+    });
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    try { history.replaceState(null, '', '#' + (current + 1)); } catch (e) {}
+  }
+  document.getElementById('prev').onclick = function () { show(current - 1); };
+  document.getElementById('next').onclick = function () { show(current + 1); };
+  addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); show(current + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); show(current - 1); }
+    else if (k === 'Home') show(0);
+    else if (k === 'End') show(slides.length - 1);
+  });
+  addEventListener('resize', fit);
+  fit();
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>
