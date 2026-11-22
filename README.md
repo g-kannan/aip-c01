@@ -162,12 +162,12 @@ Lambda request ID, and an `expiresAt` time in DynamoDB. The `ConversationHistory
 Requests remain independent; history is not sent back to Bedrock or displayed in the page.
 If the history write fails, the model call has already happened and been billed, so the gateway still
 returns the answer with `"historySaved": false`; the page shows a warning and the failure is logged.
-Records expire after `HistoryRetentionDays` (default 30) through DynamoDB time to live on `expiresAt`.
+Records expire after `HistoryRetentionDays` (default 1) through DynamoDB time to live on `expiresAt`.
 TTL deletion is not instant: DynamoDB typically removes expired items within a couple of days, so treat the
 setting as a maximum retention target, not an exact deadline. Records written before TTL was added have no
-`expiresAt` and are kept until you delete them. Point-in-time recovery backups can still hold deleted items
-for up to 35 days.
-The table uses on-demand billing and point-in-time recovery and is retained on stack deletion
+`expiresAt` and are kept until you delete them. Point-in-time recovery is turned off, so the table
+keeps no continuous backup. A table created earlier with it on has it turned off by redeploying.
+The table uses on-demand billing and is retained on stack deletion
 or replacement; delete it separately when its contents are no longer needed. Restrict access to
 the table because it contains prompt and response text. CloudWatch logs contain request IDs and error codes, not prompt text. Account-level Bedrock
 invocation logging, if enabled separately, can still capture prompts and responses.
@@ -221,7 +221,7 @@ Review and replace every suggested value that does not match your environment:
 - **ModelResourceArns**: the comma-separated profile and destination model ARNs
   from your query. Do not leave either model parameter blank.
 - **AllowedOrigin**: the exact browser origin, for example `http://localhost:8501`.
-- **HistoryRetentionDays**: how long to keep prompt and answer records (default 30).
+- **HistoryRetentionDays**: how long to keep prompt and answer records (default 1). To change it, add `HistoryRetentionDays=N` to `parameter_overrides` in your `samconfig.toml`, or pass `--parameter-overrides` to `sam deploy`.
 - Allow SAM to create the IAM role, save the configuration, and review the
   CloudFormation changeset before confirming it. The named CLI profile must be
   authorized for the target account.

@@ -23,7 +23,7 @@ history_client = boto3.client("dynamodb", config=Config(
 
 def retention_days() -> int:
     """Days to keep a history record; set by the HistoryRetentionDays stack parameter."""
-    days = int(os.environ.get("HISTORY_RETENTION_DAYS", "30"))
+    days = int(os.environ.get("HISTORY_RETENTION_DAYS", "1"))
     if days < 1:
         raise ValueError("HISTORY_RETENTION_DAYS must be at least 1.")
     return days

@@ -14,7 +14,7 @@ confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 # ModelResourceArns: the inference profile ARN and every destination model ARN, comma-separated
 # (see "Deploy the gateway" in README.md for the `aws bedrock get-inference-profile` query).
-# HistoryRetentionDays is optional (default 30).
+# HistoryRetentionDays is optional (default 1); to change it, add e.g. HistoryRetentionDays=7 to parameter_overrides.
 parameter_overrides = "ModelId=\"apac.amazon.nova-micro-v1:0\" ModelResourceArns=\"arn:aws:bedrock:YOUR_REGION:YOUR_ACCOUNT_ID:inference-profile/apac.amazon.nova-micro-v1:0,arn:aws:bedrock:DESTINATION_REGION::foundation-model/amazon.nova-micro-v1:0\" AllowedOrigin=\"http://localhost:8501\""
 image_repositories = []
 

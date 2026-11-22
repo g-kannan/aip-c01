@@ -15,7 +15,7 @@ Parameters:
     Description: Single browser origin allowed by CORS
   HistoryRetentionDays:
     Type: Number
-    Default: 30
+    Default: 1
     MinValue: 1
     MaxValue: 3650
     Description: Days to keep prompt and answer records before DynamoDB TTL expires them
@@ -59,7 +59,7 @@ Resources:
         - AttributeName: requestId
           KeyType: HASH
       PointInTimeRecoverySpecification:
-        PointInTimeRecoveryEnabled: true
+        PointInTimeRecoveryEnabled: false
       TimeToLiveSpecification:
         AttributeName: expiresAt
         Enabled: true

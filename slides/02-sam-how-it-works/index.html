@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AWS SAM — Write the YAML. SAM builds the stack.</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=IBM+Plex+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* === FIXED 16:9 STAGE ===
+   Slides are authored at 1920x1080 and scaled as a whole, like slides/01-bedrock-inference.
+   Generated from the deck's shared stylesheet plus one <section> per slide. */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#181a19}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:#181a19}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:#f4f2e9}
+.slide{position:absolute;left:0;top:0;width:1920px;height:1080px;box-sizing:border-box;overflow:hidden;visibility:hidden;opacity:0;pointer-events:none}
+.slide.active{visibility:visible;opacity:1;pointer-events:auto}
+aside{display:none}
+ul,ol{margin:0;padding-left:44px}
+
+/* === SLIDE LOOK (shared deck.css) === */
+/* How AWS SAM works: shared look. Palette matches slides/01-bedrock-inference.
+   Light slide #f4f2e9, dark slide #17241f, accent #e64b26 (fills, large type),
+   #b8330f for small accent text so it holds 4.5:1 on the light tone. */
+
+body { font-family: 'Nunito', Arial, sans-serif; color: #17241f; }
+h1, h2, h3, p { margin: 0; }
+
+section { display: flex; flex-direction: column; padding: 128px 128px 160px; background: #f4f2e9; color: #17241f; }
+section.dark { background: #17241f; color: #f4f2e9; }
+
+/* Type scale: 128 / 72 / 40 / 30 / 26 / 24 */
+h1 { font-family: 'Archivo', Arial, sans-serif; font-size: 128px; font-weight: 900; line-height: 1; letter-spacing: -5px; }
+h2 { font-family: 'Archivo', Arial, sans-serif; font-size: 72px; font-weight: 800; line-height: 1.05; letter-spacing: -2px; }
+h3 { font-family: 'Archivo', Arial, sans-serif; font-size: 40px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; }
+
+.eyebrow { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; margin-bottom: 28px; }
+section.dark .eyebrow { color: #f2906f; }
+.accent { color: #e8512b; }
+.hl { color: #f2906f; }
+.lede { font-size: 36px; line-height: 1.4; color: #526057; }
+section.dark .lede { color: #c5d0c8; }
+.body { font-size: 30px; line-height: 1.4; color: #17241f; }
+section.dark .body { color: #e6eae4; }
+.stripe { width: 240px; height: 12px; background: #e64b26; margin: 48px 0; }
+
+/* Footer: one pinned row */
+.footer { position: absolute; left: 128px; bottom: 56px; width: 1664px; height: 32px; display: flex; justify-content: space-between; }
+.footer p { font-size: 24px; color: #526057; }
+section.dark .footer p { color: #b9c4bc; }
+
+/* Card rows */
+.cards { display: flex; gap: 32px; margin-top: 56px; }
+.card { flex: 1; display: flex; flex-direction: column; gap: 18px; padding: 36px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.card .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.cmd { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #17241f; background: #dce9d4; padding: 12px 16px; }
+section.dark .card { background: #22332b; border-color: #3b4b43; }
+section.dark .card .tag { color: #f2906f; }
+section.dark .card .cmd { background: #2f433a; color: #f4f2e9; }
+
+/* Statement band */
+.band { margin-top: 48px; padding: 28px 36px; background: #17241f; color: #f4f2e9; font-size: 30px; line-height: 1.4; }
+section.dark .band { background: #f4f2e9; color: #17241f; }
+
+/* Pipeline of steps */
+.flow { display: flex; margin-top: 56px; }
+.step { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 32px 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.step .body { font-size: 28px; }
+.step .num { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 28px; font-weight: 500; color: #b8330f; }
+.step.final { background: #17241f; border-color: #17241f; color: #f4f2e9; }
+.step.final .num { color: #f2906f; }
+.step.final .cmd { background: #2f433a; color: #f4f2e9; }
+.step.final .body { color: #e6eae4; }
+.arrow { width: 64px; align-self: center; text-align: center; font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 44px; font-weight: 500; color: #e64b26; }
+
+/* Two columns */
+.cols { display: flex; gap: 64px; margin-top: 56px; }
+.col { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+.list { font-size: 32px; line-height: 1.4; color: #17241f; }
+.list li { margin-top: 14px; margin-bottom: 14px; }
+
+/* Terminal block */
+.term { padding: 36px 40px; background: #17241f; }
+.ln { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 26px; line-height: 1.55; color: #f4f2e9; }
+.ln.dim { color: #a9b9ad; }
+.ln.hot { color: #f2906f; }
+.ln.i1 { padding-left: 36px; }
+.ln.i2 { padding-left: 72px; }
+
+/* Tables */
+table { margin-top: 48px; width: 1664px; font-family: 'Nunito', Arial, sans-serif; font-size: 30px; color: #17241f; border-collapse: collapse; }
+th, td { padding: 22px 24px; text-align: left; border-bottom: 1px solid #c8cec3; vertical-align: top; }
+th { color: #526057; font-weight: 700; }
+
+/* Architecture row */
+.arch { display: flex; align-items: center; margin-top: 56px; }
+.node { display: flex; flex-direction: column; gap: 10px; padding: 28px; background: #f9f8f1; border: 2px solid #c8cec3; }
+.node.wide { flex: 1; }
+.node.core { background: #dce9d4; border-color: #9fbf93; }
+.node .tag { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 24px; font-weight: 500; color: #b8330f; }
+.node h3 { font-size: 34px; }
+.node .small { font-size: 26px; line-height: 1.35; color: #3b4a42; }
+.arch .col { flex: 1.25; gap: 24px; }
+
+/* === NAVIGATION === */
+.deck-controls{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:9px 15px;background:#17241f;color:#f4f2e9;border:1px solid #617165;border-radius:6px;font:14px 'IBM Plex Mono',monospace;white-space:nowrap;opacity:.35;transition:opacity .2s}
+.deck-controls:hover,.deck-controls:focus-within{opacity:1}
+.deck-controls button{font:inherit;color:inherit;background:none;border:1px solid #617165;border-radius:4px;padding:3px 10px;cursor:pointer}
+.deck-controls button:hover{background:#2f433a}
+
+/* === PRINT: one slide per page === */
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff}
+  .deck-viewport{position:static;overflow:visible}
+  .deck-stage{position:static;width:auto;height:auto;transform:none!important;overflow:visible}
+  .slide{position:relative;visibility:visible;opacity:1;pointer-events:auto;break-after:page;page-break-after:always}
+  .slide:last-child{break-after:auto;page-break-after:auto}
+  .deck-controls{display:none!important}
+}
+</style>
+</head>
+<body>
+<div class="deck-viewport"><main class="deck-stage" id="deckStage">
+<section id="cover" class="slide dark" style="justify-content: center;">
+<p class="eyebrow">AIP-C01 / Serverless / 02</p>
+<h1>Write the YAML.<br>SAM <span class="accent">builds</span> the stack.</h1>
+<div class="stripe"></div>
+<p class="lede" style="width: 1300px;">How AWS SAM turns one template.yaml into a CloudFormation stack, using this repo’s Bedrock gateway as the worked example.</p>
+<div class="footer"><p>Serverless deployment tutorial</p><p>01 / 09</p></div>
+<aside>Frame the talk: SAM is a thin layer over CloudFormation. The gateway/template.yaml in this repository is the running example on every slide, so each idea can be checked against a real file.</aside>
+</section>
+<section id="idea" class="slide">
+<p class="eyebrow">01 / The idea</p>
+<h2>SAM is CloudFormation with shortcuts.</h2>
+<div class="cards">
+<div class="card"><p class="tag">TEMPLATE</p><h3>Shorter syntax</h3><p class="body">One Transform line unlocks AWS::Serverless::* types that expand into full CloudFormation.</p></div>
+<div class="card"><p class="tag">CLI</p><h3>Packaging commands</h3><p class="body">validate, build, deploy, sync, local and delete package your code and drive CloudFormation.</p></div>
+<div class="card"><p class="tag">RESULT</p><h3>A normal stack</h3><p class="body">Nothing runs on SAM. You get an ordinary stack: events, change sets, rollbacks, outputs.</p></div>
+</div>
+<div class="band">In this repo, <span class="hl">gateway/template.yaml</span> has 2 serverless resources and 3 plain CloudFormation ones.</div>
+<div class="footer"><p>How AWS SAM works</p><p>02 / 09</p></div>
+<aside>SAM has two halves: a template specification, which is a superset of CloudFormation, and a command line tool. The Transform line at the top of the template is what switches the shortcuts on. In gateway/template.yaml the serverless types are ExplainFunction and GatewayApi; the DynamoDB table and the two log groups are plain CloudFormation and are used exactly as they would be without SAM.</aside>
+</section>
+<section id="expand" class="slide">
+<p class="eyebrow">02 / What it expands to</p>
+<h2>Two shortcuts become many resources.</h2>
+<table>
+<tr><th style="width: 32%;">You write</th><th style="width: 68%;">CloudFormation creates</th></tr>
+<tr><td>ExplainFunction · Serverless::Function</td><td>A Lambda function, an execution role built from your Policies, and a permission that lets API Gateway invoke it.</td></tr>
+<tr><td>GatewayApi · Serverless::HttpApi</td><td>An HTTP API with the prod stage, IAM authorizer, route to the function, CORS, access logs and throttling.</td></tr>
+<tr><td>Table and log groups · plain resources</td><td>Passed through unchanged. SAM only rewrites the Serverless types.</td></tr>
+</table>
+<div class="footer"><p>How AWS SAM works</p><p>03 / 09</p></div>
+<aside>The expansion happens inside CloudFormation, when the Transform runs during deployment, so the template on disk stays short. To read the expanded result, open the stack in the CloudFormation console, choose the Template tab and view the processed template. The exact list of generated resources can vary with the properties you set, so treat this table as typical rather than exhaustive.</aside>
+</section>
+<section id="flow" class="slide">
+<p class="eyebrow">03 / The workflow</p>
+<h2>From files to a running stack.</h2>
+<div class="flow">
+<div class="step"><p class="num">01</p><h3>Validate</h3><p class="cmd">sam validate --lint</p><p class="body">Lint the template before any AWS call is made.</p></div>
+<p class="arrow">→</p>
+<div class="step"><p class="num">02</p><h3>Build</h3><p class="cmd">sam build</p><p class="body">Copy code and install dependencies into .aws-sam/build.</p></div>
+<p class="arrow">→</p>
+<div class="step"><p class="num">03</p><h3>Deploy</h3><p class="cmd">sam deploy</p><p class="body">Upload to S3, then CloudFormation expands and applies it.</p></div>
+<p class="arrow">→</p>
+<div class="step final"><p class="num">04</p><h3>Stack</h3><p class="cmd">CloudFormation</p><p class="body">Lambda, API, table and log groups, plus Outputs.</p></div>
+</div>
+<div class="band">Only <span class="hl">deploy</span> creates anything in AWS. <span class="hl">build</span> and <span class="hl">validate --lint</span> run locally.</div>
+<div class="footer"><p>How AWS SAM works</p><p>04 / 09</p></div>
+<aside>Walk left to right. Steps one and two are local and safe to repeat. Step three is where CloudFormation takes over, and the last card is the result: a stack whose resources and outputs you can inspect. This repository’s README runs unit tests first, then validate, build and deploy, in that order.</aside>
+</section>
+<section id="build" class="slide">
+<p class="eyebrow">04 / sam build</p>
+<h2>sam build prepares code, not infrastructure.</h2>
+<div class="cols">
+<div class="col">
+<ul class="list">
+<li>Copies each function’s CodeUri to its own folder.</li>
+<li>Installs requirements.txt, here boto3.</li>
+<li>Writes a build template pointing at those folders.</li>
+<li>You then deploy from that build template.</li>
+</ul>
+</div>
+<div class="col">
+<div class="term">
+<p class="ln hot">$ sam build -t gateway/template.yaml</p>
+<p class="ln dim">.aws-sam/build/</p>
+<p class="ln i1">template.yaml</p>
+<p class="ln i1">ExplainFunction/</p>
+<p class="ln i2">handler.py</p>
+<p class="ln i2">boto3/ …</p>
+</div>
+</div>
+</div>
+<div class="footer"><p>How AWS SAM works</p><p>05 / 09</p></div>
+<aside>Build does not touch AWS. It turns the source folder into something deployable: one folder per function, with dependencies installed beside the handler. The build template it writes is a copy of your template whose CodeUri values point at those folders, which is why this repository’s README deploys with .aws-sam/build/template.yaml. The folder is generated output and is git-ignored.</aside>
+</section>
+<section id="deploy" class="slide">
+<p class="eyebrow">05 / sam deploy</p>
+<h2>Deploy hands the work to CloudFormation.</h2>
+<ol class="list" style="font-size: 28px; margin-top: 40px;">
+<li>Zip each function and upload it to S3 (resolve_s3 = true gives you a managed bucket).</li>
+<li>Rewrite CodeUri to the S3 location and submit the template to CloudFormation.</li>
+<li>CloudFormation runs the Serverless transform and prepares a change set.</li>
+<li>You review the change set (confirm_changeset = true); IAM changes require CAPABILITY_IAM.</li>
+<li>Resources are created in dependency order, then the stack Outputs appear.</li>
+</ol>
+<div class="band">If a first create fails, the stack ends in <span class="hl">ROLLBACK_COMPLETE</span> and must be deleted before you retry.</div>
+<div class="footer"><p>How AWS SAM works</p><p>06 / 09</p></div>
+<aside>Deploy is the only step that changes AWS. The artifact bucket is managed by the SAM CLI when resolve_s3 is on. The change set is your chance to see what will be created, replaced or deleted before anything happens. CAPABILITY_IAM acknowledges that the stack creates an IAM role, which this template does for the Lambda function. After a successful run, read the Outputs: ExplainUrl and InvokeArn are the values this project copies into .env.</aside>
+</section>
+<section id="params" class="slide">
+<p class="eyebrow">06 / Parameters</p>
+<h2>Three places set a parameter.</h2>
+<table style="font-size: 28px;">
+<tr><th style="width: 24%;">Where</th><th style="width: 48%;">Example</th><th style="width: 28%;">Wins over</th></tr>
+<tr><td>Command line</td><td>--parameter-overrides HistoryRetentionDays=7</td><td>Everything below</td></tr>
+<tr><td>samconfig.toml</td><td>parameter_overrides, saved by --guided</td><td>The template default</td></tr>
+<tr><td>Template</td><td>HistoryRetentionDays: Default: 1</td><td>Nothing (the fallback)</td></tr>
+</table>
+<div class="band">Keep <span class="hl">samconfig.toml</span> private. It holds your account ID, so this repo git-ignores it.</div>
+<div class="footer"><p>How AWS SAM works</p><p>07 / 09</p></div>
+<aside>The template declares four parameters: ModelId, ModelResourceArns, AllowedOrigin and HistoryRetentionDays. The first three have no useful default, so sam deploy --guided asks for them and stores the answers in samconfig.toml. HistoryRetentionDays has a default of 1 day in the template, which applies unless you override it on the command line or in samconfig.toml. A value given on the command line beats the config file, and the config file beats the template default.</aside>
+</section>
+<section id="stack" class="slide">
+<p class="eyebrow">07 / This project</p>
+<h2>What the gateway stack contains.</h2>
+<div class="arch">
+<div class="node wide core"><p class="tag">SERVERLESS::HTTPAPI</p><h3>GatewayApi</h3><p class="small">SigV4 callers, AWS_IAM, throttling</p></div>
+<p class="arrow">→</p>
+<div class="node wide core"><p class="tag">SERVERLESS::FUNCTION</p><h3>ExplainFunction</h3><p class="small">Python 3.12, 28 s timeout</p></div>
+<p class="arrow">→</p>
+<div class="col">
+<div class="node"><p class="tag">BEDROCK</p><h3>Converse</h3><p class="small">bedrock:InvokeModel</p></div>
+<div class="node"><p class="tag">DYNAMODB</p><h3>ConversationHistory</h3><p class="small">TTL, retained on delete</p></div>
+</div>
+</div>
+<div class="band">Outputs feed .env: <span class="hl">ExplainUrl</span> → GATEWAY_URL, <span class="hl">InvokeArn</span> → GATEWAY_INVOKE_ARN.</div>
+<div class="footer"><p>How AWS SAM works</p><p>08 / 09</p></div>
+<aside>The two green boxes are the Serverless types SAM expands. Bedrock is called by the function with an IAM policy scoped to the exact model ARNs you pass in, and the history table is plain CloudFormation with a TTL on expiresAt. Two CloudWatch log groups, not drawn, keep logs for 14 days. The stack Outputs are the bridge back to the Streamlit app: ExplainUrl becomes GATEWAY_URL and InvokeArn becomes GATEWAY_INVOKE_ARN.</aside>
+</section>
+<section id="wrapup" class="slide dark">
+<p class="eyebrow">08 / Operate</p>
+<h2>Change it, run it, tear it down.</h2>
+<div class="cards">
+<div class="card"><p class="tag">ITERATE</p><h3>Build and deploy</h3><p class="cmd">sam build &amp;&amp; sam deploy</p><p class="body">Each deploy creates a change set that previews every change.</p></div>
+<div class="card"><p class="tag">FAST LOOP</p><h3>Sync and local</h3><p class="cmd">sam sync --watch</p><p class="body">Pushes code straight to a dev stack. sam local needs Docker.</p></div>
+<div class="card"><p class="tag">TEAR DOWN</p><h3>Delete the stack</h3><p class="cmd">sam delete</p><p class="body">Removes the stack. Retained resources, like the history table, stay.</p></div>
+</div>
+<div class="band">SAM adds no runtime. Everything it makes is <b>CloudFormation</b>, so IAM, drift and rollbacks work as usual.</div>
+<div class="footer"><p>How AWS SAM works</p><p>09 / 09</p></div>
+<aside>Close on the idea from the first slide. For day-to-day work, build and deploy again and read the change set. sam sync with watch is a development shortcut that pushes code changes directly instead of going through a full CloudFormation update, so keep it to dev stacks. sam delete removes the stack, but the DynamoDB history table has a Retain policy, so it survives and must be deleted separately when its contents are no longer needed.</aside>
+</section>
+</main></div>
+<nav class="deck-controls" aria-label="Slide navigation"><button id="prev" aria-label="Previous slide">←</button><span id="counter" aria-live="polite"></span><button id="next" aria-label="Next slide">→</button></nav>
+<script>
+/* Arrow keys, PageUp/PageDown, Space, Home and End move between slides; the slide number is kept in the URL hash. */
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var stage = document.getElementById('deckStage');
+  var counter = document.getElementById('counter');
+  var current = 0;
+  function fit() {
+    var f = Math.min(innerWidth / 1920, innerHeight / 1080);
+    stage.style.transform = 'translate(' + (innerWidth - 1920 * f) / 2 + 'px,' + (innerHeight - 1080 * f) / 2 + 'px) scale(' + f + ')';
+  }
+  function show(n) {
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach(function (s, k) {
+      s.classList.toggle('active', k === current);
+      s.setAttribute('aria-hidden', String(k !== current));
+    });
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    try { history.replaceState(null, '', '#' + (current + 1)); } catch (e) {}
+  }
+  document.getElementById('prev').onclick = function () { show(current - 1); };
+  document.getElementById('next').onclick = function () { show(current + 1); };
+  addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); show(current + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); show(current - 1); }
+    else if (k === 'Home') show(0);
+    else if (k === 'End') show(slides.length - 1);
+  });
+  addEventListener('resize', fit);
+  fit();
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>

@@ -54,12 +54,12 @@ class HandlerTests(unittest.TestCase):
         self.assertEqual(list(expires), ["N"])  # TTL attributes must be Numbers
         self.assertTrue(before + 7 * 86400 <= int(expires["N"]) <= after + 7 * 86400)
 
-    def test_retention_defaults_to_30_days(self):
+    def test_retention_defaults_to_1_day(self):
         os.environ.pop("HISTORY_RETENTION_DAYS", None)
         before = int(datetime.now(timezone.utc).timestamp())
         handler.lambda_handler({"body": '{"prompt":"hi"}'}, self.context)
         expires = int(self.history.put_item.call_args.kwargs["Item"]["expiresAt"]["N"])
-        self.assertTrue(before + 30 * 86400 <= expires <= before + 30 * 86400 + 60)
+        self.assertTrue(before + 86400 <= expires <= before + 86400 + 60)
 
     def test_invalid_input_never_calls_bedrock(self):
         for body in ("{", "[]", '{"prompt":" "}', json.dumps({"prompt": "x" * 16001})):
