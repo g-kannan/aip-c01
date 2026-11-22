@@ -199,8 +199,9 @@ quotes. The account ID in the profile ARN must be your own. Destination regions 
 change, so query again when updating a deployment. For a different model or profile,
 discover its applicable resources and permissions for your account and region.
 
-The repository's `samconfig.toml`, if present, may contain another developer's
-account-specific settings. Do not deploy with those values. Run the guided setup:
+`samconfig.toml` holds account-specific settings, so Git ignores it and it is not in this
+repository. The guided setup below creates it for you; `samconfig.toml.example` shows the
+shape if you prefer to write it by hand. Run the guided setup:
 
 ```powershell
 sam deploy --guided --template-file .aws-sam/build/template.yaml --profile your-profile
@@ -219,7 +220,7 @@ Review and replace every suggested value that does not match your environment:
   authorized for the target account.
 
 Guided deployment saves parameters in `samconfig.toml`; inspect it before subsequent
-deployments or sharing it, since it can contain account IDs and local settings.
+deployments. Never commit or share it, since it contains your account ID and local settings.
 Use `sam build --template-file gateway/template.yaml` followed by `sam deploy`
 for subsequent deployments after checking those saved values.
 

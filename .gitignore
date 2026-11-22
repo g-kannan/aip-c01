@@ -5,3 +5,4 @@
 __pycache__/
 *.py[cod]
 aws_genai*
+samconfig.toml

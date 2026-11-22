@@ -1,0 +1,22 @@
+# Example SAM deployment settings. Do not commit your real samconfig.toml:
+# it is ignored by Git because it holds account-specific values.
+#
+# Preferred: run `sam deploy --guided` and let SAM write samconfig.toml for you.
+# Or copy this file to samconfig.toml and replace every placeholder below.
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "bedrock-chat-gw"
+resolve_s3 = true
+s3_prefix = "bedrock-chat-gw"
+profile = "YOUR_AWS_PROFILE"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+# ModelResourceArns: the inference profile ARN and every destination model ARN, comma-separated
+# (see "Deploy the gateway" in README.md for the `aws bedrock get-inference-profile` query).
+# HistoryRetentionDays is optional (default 30).
+parameter_overrides = "ModelId=\"apac.amazon.nova-micro-v1:0\" ModelResourceArns=\"arn:aws:bedrock:YOUR_REGION:YOUR_ACCOUNT_ID:inference-profile/apac.amazon.nova-micro-v1:0,arn:aws:bedrock:DESTINATION_REGION::foundation-model/amazon.nova-micro-v1:0\" AllowedOrigin=\"http://localhost:8501\""
+image_repositories = []
+
+[default.global.parameters]
+region = "YOUR_REGION"
