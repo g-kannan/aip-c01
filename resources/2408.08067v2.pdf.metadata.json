@@ -1,0 +1,52 @@
+{
+  "metadataAttributes": {
+    "title": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "RAGChecker: A Fine-grained Framework for Diagnosing Retrieval-Augmented Generation"
+      }
+    },
+    "arxiv_id": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "2408.08067"
+      }
+    },
+    "version": {
+      "value": {
+        "type": "NUMBER",
+        "numberValue": 2
+      }
+    },
+    "year": {
+      "value": {
+        "type": "NUMBER",
+        "numberValue": 2024
+      }
+    },
+    "first_author": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "Dongyu Ru"
+      }
+    },
+    "topic": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "RAG evaluation"
+      }
+    },
+    "source": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "arXiv"
+      }
+    },
+    "source_url": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "https://arxiv.org/abs/2408.08067v2"
+      }
+    }
+  }
+}

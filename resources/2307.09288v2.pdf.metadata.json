@@ -1,0 +1,52 @@
+{
+  "metadataAttributes": {
+    "title": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "Llama 2: Open Foundation and Fine-Tuned Chat Models"
+      }
+    },
+    "arxiv_id": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "2307.09288"
+      }
+    },
+    "version": {
+      "value": {
+        "type": "NUMBER",
+        "numberValue": 2
+      }
+    },
+    "year": {
+      "value": {
+        "type": "NUMBER",
+        "numberValue": 2023
+      }
+    },
+    "first_author": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "Hugo Touvron"
+      }
+    },
+    "topic": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "foundation models"
+      }
+    },
+    "source": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "arXiv"
+      }
+    },
+    "source_url": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "https://arxiv.org/abs/2307.09288v2"
+      }
+    }
+  }
+}

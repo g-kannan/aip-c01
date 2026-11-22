@@ -1,0 +1,52 @@
+{
+  "metadataAttributes": {
+    "title": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "Toolformer: Language Models Can Teach Themselves to Use Tools"
+      }
+    },
+    "arxiv_id": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "2302.04761"
+      }
+    },
+    "version": {
+      "value": {
+        "type": "NUMBER",
+        "numberValue": 1
+      }
+    },
+    "year": {
+      "value": {
+        "type": "NUMBER",
+        "numberValue": 2023
+      }
+    },
+    "first_author": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "Timo Schick"
+      }
+    },
+    "topic": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "tool use"
+      }
+    },
+    "source": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "arXiv"
+      }
+    },
+    "source_url": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "https://arxiv.org/abs/2302.04761v1"
+      }
+    }
+  }
+}

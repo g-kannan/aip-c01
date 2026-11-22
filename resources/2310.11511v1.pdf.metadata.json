@@ -1,0 +1,52 @@
+{
+  "metadataAttributes": {
+    "title": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection"
+      }
+    },
+    "arxiv_id": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "2310.11511"
+      }
+    },
+    "version": {
+      "value": {
+        "type": "NUMBER",
+        "numberValue": 1
+      }
+    },
+    "year": {
+      "value": {
+        "type": "NUMBER",
+        "numberValue": 2023
+      }
+    },
+    "first_author": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "Akari Asai"
+      }
+    },
+    "topic": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "retrieval-augmented generation"
+      }
+    },
+    "source": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "arXiv"
+      }
+    },
+    "source_url": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "https://arxiv.org/abs/2310.11511v1"
+      }
+    }
+  }
+}

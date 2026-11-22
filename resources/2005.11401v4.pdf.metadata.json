@@ -1,0 +1,52 @@
+{
+  "metadataAttributes": {
+    "title": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"
+      }
+    },
+    "arxiv_id": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "2005.11401"
+      }
+    },
+    "version": {
+      "value": {
+        "type": "NUMBER",
+        "numberValue": 4
+      }
+    },
+    "year": {
+      "value": {
+        "type": "NUMBER",
+        "numberValue": 2020
+      }
+    },
+    "first_author": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "Patrick Lewis"
+      }
+    },
+    "topic": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "retrieval-augmented generation"
+      }
+    },
+    "source": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "arXiv"
+      }
+    },
+    "source_url": {
+      "value": {
+        "type": "STRING",
+        "stringValue": "https://arxiv.org/abs/2005.11401v4"
+      }
+    }
+  }
+}
