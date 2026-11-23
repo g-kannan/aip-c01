@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="burndown-title burndown-desc">
+  <title id="burndown-title">How Amazon Bedrock counts a request against tokens-per-minute quota</title>
+  <desc id="burndown-desc">Three steps. Reserve: input tokens plus max_tokens are deducted from TPM and TPD at the start. Adjust: the quota is refreshed as output tokens are produced. Settle: at the end, InputTokenCount plus CacheWriteInputTokenCount plus OutputTokenCount times the burndown rate is the final charge, and unused reservation is returned. Worked example: max_tokens 32,000 reserves 36,000 tokens, while max_tokens 1,250 reserves 5,250; both settle at 9,000 in the example model with a 5x output burndown.</desc>
+
+  <defs>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e64b26"/>
+    </marker>
+  </defs>
+
+  <style>
+    .head { font-family: 'Archivo', Arial, sans-serif; font-weight: 800; }
+    .sans { font-family: 'Nunito', Arial, sans-serif; }
+    .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; }
+  </style>
+
+  <!-- Background: light slide tone from the deck palette -->
+  <rect x="0" y="0" width="1600" height="900" fill="#f4f2e9"/>
+
+  <!-- Heading -->
+  <text x="80" y="92" class="mono" font-size="24" fill="#b8330f">AMAZON BEDROCK · TOKENS PER MINUTE (TPM)</text>
+  <text x="80" y="160" class="head" font-size="56" fill="#17241f">Reserve at the start, settle at the end</text>
+
+  <!-- Step 1: Reserve -->
+  <rect x="80" y="210" width="440" height="280" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+  <text x="112" y="252" class="mono" font-size="22" fill="#b8330f">1 · START</text>
+  <text x="112" y="306" class="head" font-size="40" fill="#17241f">Reserve</text>
+  <text x="112" y="356" class="sans" font-size="22" fill="#17241f">Input tokens + max_tokens</text>
+  <text x="112" y="388" class="sans" font-size="22" fill="#17241f">are deducted from TPM and TPD.</text>
+  <text x="112" y="420" class="sans" font-size="22" fill="#17241f">Over quota means throttled.</text>
+
+  <!-- Step 2: Adjust -->
+  <rect x="580" y="210" width="440" height="280" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+  <text x="612" y="252" class="mono" font-size="22" fill="#b8330f">2 · WHILE GENERATING</text>
+  <text x="612" y="306" class="head" font-size="40" fill="#17241f">Adjust</text>
+  <text x="612" y="356" class="sans" font-size="22" fill="#17241f">Quota is refreshed periodically</text>
+  <text x="612" y="388" class="sans" font-size="22" fill="#17241f">as output tokens are produced.</text>
+
+  <!-- Step 3: Settle (dark accent card, as the final step in the deck) -->
+  <rect x="1080" y="210" width="440" height="280" fill="#17241f" stroke="#17241f" stroke-width="2"/>
+  <text x="1112" y="252" class="mono" font-size="22" fill="#f2906f">3 · END</text>
+  <text x="1112" y="306" class="head" font-size="40" fill="#f4f2e9">Settle</text>
+  <text x="1112" y="356" class="mono" font-size="21" fill="#e6eae4">InputTokenCount</text>
+  <text x="1112" y="388" class="mono" font-size="21" fill="#e6eae4">+ CacheWriteInputTokenCount</text>
+  <text x="1112" y="420" class="mono" font-size="21" fill="#e6eae4">+ OutputTokenCount × rate</text>
+  <text x="1112" y="458" class="sans" font-size="22" fill="#f4f2e9">Unused reservation is returned.</text>
+
+  <!-- Flow arrows -->
+  <line x1="520" y1="350" x2="576" y2="350" stroke="#e64b26" stroke-width="4" marker-end="url(#arrowhead)"/>
+  <line x1="1020" y1="350" x2="1076" y2="350" stroke="#e64b26" stroke-width="4" marker-end="url(#arrowhead)"/>
+
+  <!-- Worked example A: oversized max_tokens -->
+  <rect x="80" y="530" width="720" height="270" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+  <text x="112" y="578" class="head" font-size="32" fill="#17241f">max_tokens = 32,000 (oversized)</text>
+  <text x="112" y="630" class="mono" font-size="24" fill="#17241f">Reserved  3,000 + 1,000 + 32,000 = 36,000</text>
+  <text x="112" y="670" class="mono" font-size="24" fill="#17241f">Settled   3,000 + 1,000 + 1,000 × 5 = 9,000</text>
+  <text x="112" y="735" class="sans" font-size="24" fill="#b8330f">Reserves 4x what the call finally uses.</text>
+
+  <!-- Worked example B: tuned max_tokens -->
+  <rect x="840" y="530" width="680" height="270" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+  <text x="872" y="578" class="head" font-size="32" fill="#17241f">max_tokens = 1,250 (tuned)</text>
+  <text x="872" y="630" class="mono" font-size="24" fill="#17241f">Reserved  3,000 + 1,000 + 1,250 = 5,250</text>
+  <text x="872" y="670" class="mono" font-size="24" fill="#17241f">Settled   3,000 + 1,000 + 1,000 × 5 = 9,000</text>
+  <text x="872" y="735" class="sans" font-size="24" fill="#526057">Smaller hold: more calls fit under TPM.</text>
+
+  <!-- Footer -->
+  <text x="80" y="848" class="sans" font-size="22" fill="#526057">Cache reads are not counted toward quota. Example model uses a 5x output burndown rate.</text>
+  <text x="80" y="878" class="sans" font-size="20" fill="#526057">Source: AWS docs, How tokens are counted in Amazon Bedrock (quotas-token-burndown).</text>
+</svg>
