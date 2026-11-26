@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="hier-title hier-desc">
+  <title id="hier-title">Gotcha: hierarchical chunking is not recommended on S3 vector buckets above 8,000 combined tokens</title>
+  <desc id="hier-desc">Hierarchical chunking has two levels only, parent and child. On an S3 vector bucket, using more than 8,000 combined tokens can hit metadata size limits, and the page does not recommend hierarchical chunking there. Keep combined tokens under 8,000, or choose a different chunking strategy.</desc>
+
+  <style>
+    .head { font-family: 'Archivo', Arial, sans-serif; font-weight: 800; }
+    .sans { font-family: 'Nunito', Arial, sans-serif; }
+    .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; }
+  </style>
+
+  <!-- Background: light slide tone from the deck palette -->
+  <rect x="0" y="0" width="1600" height="900" fill="#f4f2e9"/>
+
+  <!-- Heading -->
+  <text x="80" y="92" class="mono" font-size="24" fill="#b8330f">GOTCHA · KNOWLEDGE BASE CHUNKING</text>
+  <text x="80" y="160" class="head" font-size="56" fill="#17241f">Hierarchical chunking strains S3 buckets</text>
+
+  <!-- Left card: trap -->
+  <rect x="80" y="220" width="700" height="320" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+  <text x="120" y="256" class="mono" font-size="20" fill="#b8330f">TRAP</text>
+  <text x="120" y="330" class="head" font-size="40" fill="#17241f">Hierarchical + S3 bucket</text>
+  <text x="120" y="390" class="sans" font-size="26" fill="#17241f">Over 8,000 combined tokens</text>
+  <text x="120" y="426" class="sans" font-size="26" fill="#17241f">can hit metadata size limits.</text>
+  <text x="120" y="478" class="sans" font-size="24" fill="#526057">Failures show up at ingestion,</text>
+  <text x="120" y="508" class="sans" font-size="24" fill="#526057">not at design time.</text>
+
+  <!-- Right card: fix -->
+  <rect x="820" y="220" width="700" height="320" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+  <text x="860" y="256" class="mono" font-size="20" fill="#17241f">FIX</text>
+  <text x="860" y="330" class="head" font-size="40" fill="#17241f">Check size and store</text>
+  <text x="860" y="390" class="sans" font-size="26" fill="#17241f">Keep combined tokens under 8,000,</text>
+  <text x="860" y="426" class="sans" font-size="26" fill="#17241f">or pick a different strategy.</text>
+  <text x="860" y="478" class="sans" font-size="24" fill="#526057">The docs do not recommend hierarchical</text>
+  <text x="860" y="508" class="sans" font-size="24" fill="#526057">chunking on S3 vector buckets.</text>
+
+  <!-- Rule band -->
+  <rect x="80" y="580" width="1440" height="220" fill="#17241f"/>
+  <text x="120" y="632" class="mono" font-size="22" fill="#f2906f">RULE</text>
+  <text x="120" y="690" class="head" font-size="40" fill="#f4f2e9">Check the vector store before choosing hierarchical.</text>
+  <text x="120" y="740" class="sans" font-size="26" fill="#e6eae4">Hierarchical chunking has only two levels: parent and child.</text>
+  <text x="120" y="774" class="sans" font-size="26" fill="#e6eae4">Over 8,000 combined tokens on an S3 vector bucket is the limit to watch.</text>
+
+  <!-- Footer -->
+  <text x="80" y="850" class="sans" font-size="20" fill="#526057">Source: AWS, Chunking strategies for knowledge bases (kb-chunking).</text>
+</svg>

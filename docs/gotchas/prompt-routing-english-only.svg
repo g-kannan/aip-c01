@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="routing-title routing-desc">
+  <title id="routing-title">Gotcha: Intelligent Prompt Routing is only optimized for English prompts</title>
+  <desc id="routing-desc">Intelligent Prompt Routing is only optimized for English prompts, and it cannot adjust routing decisions based on application-specific performance data. Test routed answers for each language before rollout, and keep the fallback model as the baseline. The router routes on predicted response quality compared with the fallback model.</desc>
+
+  <style>
+    .head { font-family: 'Archivo', Arial, sans-serif; font-weight: 800; }
+    .sans { font-family: 'Nunito', Arial, sans-serif; }
+    .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; }
+  </style>
+
+  <!-- Background: light slide tone from the deck palette -->
+  <rect x="0" y="0" width="1600" height="900" fill="#f4f2e9"/>
+
+  <!-- Heading -->
+  <text x="80" y="92" class="mono" font-size="24" fill="#b8330f">GOTCHA · INTELLIGENT PROMPT ROUTING</text>
+  <text x="80" y="160" class="head" font-size="56" fill="#17241f">Prompt routing is optimized for English</text>
+
+  <!-- Left card: trap -->
+  <rect x="80" y="220" width="700" height="320" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+  <text x="120" y="256" class="mono" font-size="20" fill="#b8330f">TRAP</text>
+  <text x="120" y="330" class="head" font-size="40" fill="#17241f">Non-English traffic</text>
+  <text x="120" y="390" class="sans" font-size="26" fill="#17241f">Routing is only optimized for English</text>
+  <text x="120" y="426" class="sans" font-size="26" fill="#17241f">prompts, so other languages may route</text>
+  <text x="120" y="462" class="sans" font-size="26" fill="#17241f">less well.</text>
+  <text x="120" y="508" class="sans" font-size="24" fill="#526057">Good English results don't prove the rest.</text>
+
+  <!-- Right card: fix -->
+  <rect x="820" y="220" width="700" height="320" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+  <text x="860" y="256" class="mono" font-size="20" fill="#17241f">FIX</text>
+  <text x="860" y="330" class="head" font-size="40" fill="#17241f">Test each language</text>
+  <text x="860" y="390" class="sans" font-size="26" fill="#17241f">Evaluate routed answers per language</text>
+  <text x="860" y="426" class="sans" font-size="26" fill="#17241f">before rollout, and keep the fallback</text>
+  <text x="860" y="462" class="sans" font-size="26" fill="#17241f">model as the reliable baseline.</text>
+  <text x="860" y="508" class="sans" font-size="24" fill="#526057">Monitor performance and cost metrics.</text>
+
+  <!-- Rule band -->
+  <rect x="80" y="580" width="1440" height="220" fill="#17241f"/>
+  <text x="120" y="632" class="mono" font-size="22" fill="#f2906f">RULE</text>
+  <text x="120" y="690" class="head" font-size="40" fill="#f4f2e9">The router can't adapt to your app's metrics.</text>
+  <text x="120" y="740" class="sans" font-size="26" fill="#e6eae4">It picks a model by predicted response quality against the fallback.</text>
+  <text x="120" y="774" class="sans" font-size="26" fill="#e6eae4">Application-specific performance data doesn't change its decisions.</text>
+
+  <!-- Footer -->
+  <text x="80" y="850" class="sans" font-size="20" fill="#526057">Source: AWS, Understanding intelligent prompt routing in Amazon Bedrock (prompt-routing).</text>
+</svg>

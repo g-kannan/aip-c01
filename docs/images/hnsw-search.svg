@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="hnsw-title hnsw-desc">
+  <title id="hnsw-title">How an HNSW index finds nearest neighbors by hopping down layers</title>
+  <desc id="hnsw-desc">HNSW stacks graph layers. The top layer has few nodes with long links, and layer 0 holds every vector with short links. A search enters at the top entry point, hops to the neighbor closest to the query until no neighbor is closer, drops down one layer from that node, and repeats. At layer 0 it keeps a candidate list of size efSearch and returns the nearest. Knobs: M (links per node), efConstruction (build-time candidate list), efSearch (query-time candidate list). The search is approximate: a little recall is traded for far less work than comparing every vector.</desc>
+
+  <defs>
+    <marker id="hnsw-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e64b26"/>
+    </marker>
+  </defs>
+
+  <style>
+    .head { font-family: 'Archivo', Arial, sans-serif; font-weight: 800; }
+    .sans { font-family: 'Nunito', Arial, sans-serif; }
+    .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; }
+  </style>
+
+  <!-- Background: light slide tone from the deck palette -->
+  <rect x="0" y="0" width="1600" height="900" fill="#f4f2e9"/>
+
+  <!-- Heading -->
+  <text x="80" y="92" class="mono" font-size="24" fill="#b8330f">VECTOR INDEX · HIERARCHICAL NAVIGABLE SMALL WORLD</text>
+  <text x="80" y="160" class="head" font-size="56" fill="#17241f">HNSW: hop down layers to find neighbors</text>
+
+  <!-- Layer panels -->
+  <rect x="80" y="200" width="860" height="160" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+
+  <rect x="80" y="380" width="860" height="160" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+
+  <rect x="80" y="560" width="860" height="280" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+
+  <!-- Dashed drop lines: same node appears in every layer it reaches -->
+  <g stroke="#526057" stroke-width="2" stroke-dasharray="6 6" fill="none">
+    <line x1="200" y1="290" x2="200" y2="460"/>
+    <line x1="200" y1="460" x2="200" y2="700"/>
+    <line x1="520" y1="270" x2="520" y2="450"/>
+    <line x1="520" y1="450" x2="520" y2="670"/>
+    <line x1="780" y1="300" x2="780" y2="455"/>
+    <line x1="780" y1="455" x2="780" y2="650"/>
+  </g>
+
+  <!-- Layer 2 links -->
+  <g stroke="#7c877f" stroke-width="2" fill="none">
+    <line x1="200" y1="290" x2="520" y2="270"/>
+    <line x1="520" y1="270" x2="780" y2="300"/>
+  </g>
+  <!-- Layer 1 links -->
+  <g stroke="#7c877f" stroke-width="2" fill="none">
+    <line x1="200" y1="460" x2="340" y2="490"/>
+    <line x1="340" y1="490" x2="520" y2="450"/>
+    <line x1="520" y1="450" x2="660" y2="480"/>
+    <line x1="660" y1="480" x2="780" y2="455"/>
+  </g>
+  <!-- Layer 0 links -->
+  <g stroke="#7c877f" stroke-width="2" fill="none">
+    <line x1="200" y1="700" x2="300" y2="640"/>
+    <line x1="300" y1="640" x2="520" y2="670"/>
+    <line x1="200" y1="700" x2="280" y2="800"/>
+    <line x1="280" y1="800" x2="420" y2="760"/>
+    <line x1="420" y1="760" x2="520" y2="670"/>
+    <line x1="520" y1="670" x2="640" y2="720"/>
+    <line x1="640" y1="720" x2="780" y2="650"/>
+    <line x1="640" y1="720" x2="700" y2="800"/>
+    <line x1="700" y1="800" x2="880" y2="780"/>
+    <line x1="420" y1="760" x2="700" y2="800"/>
+  </g>
+
+  <!-- Search path (accent): top layer, then layer 1, then layer 0 -->
+  <g stroke="#e64b26" stroke-width="5" fill="none" marker-end="url(#hnsw-arrow)">
+    <line x1="200" y1="290" x2="500" y2="272"/>
+    <line x1="540" y1="270" x2="755" y2="298"/>
+    <line x1="520" y1="450" x2="640" y2="478"/>
+    <line x1="680" y1="480" x2="755" y2="458"/>
+    <line x1="520" y1="670" x2="620" y2="716"/>
+    <line x1="660" y1="720" x2="755" y2="664"/>
+  </g>
+
+  <!-- Nodes: layers 2 and 1 -->
+  <g fill="#17241f">
+    <circle cx="520" cy="270" r="12"/>
+    <circle cx="780" cy="300" r="12"/>
+    <circle cx="340" cy="490" r="12"/>
+    <circle cx="520" cy="450" r="12"/>
+    <circle cx="660" cy="480" r="12"/>
+    <circle cx="780" cy="455" r="12"/>
+  </g>
+  <circle cx="200" cy="290" r="14" fill="#e64b26"/>
+  <circle cx="200" cy="460" r="12" fill="#17241f"/>
+  <text x="200" y="264" class="mono" font-size="18" fill="#b8330f" text-anchor="middle">entry</text>
+
+  <!-- Nodes: layer 0 -->
+  <g fill="#17241f">
+    <circle cx="300" cy="640" r="9"/>
+    <circle cx="280" cy="800" r="9"/>
+    <circle cx="420" cy="760" r="9"/>
+    <circle cx="640" cy="720" r="9"/>
+    <circle cx="700" cy="800" r="9"/>
+    <circle cx="880" cy="780" r="9"/>
+    <circle cx="520" cy="670" r="10"/>
+    <circle cx="780" cy="650" r="10"/>
+  </g>
+  <circle cx="200" cy="700" r="10" fill="#17241f"/>
+
+  <!-- Query target -->
+  <circle cx="810" cy="690" r="11" fill="#f4f2e9" stroke="#e64b26" stroke-width="4"/>
+  <text x="810" y="724" class="mono" font-size="18" fill="#b8330f" text-anchor="middle">query</text>
+
+  <!-- Layer labels sit on top of the drop lines so the lines pass behind them -->
+  <rect x="96" y="216" width="352" height="28" fill="#f9f8f1"/>
+  <text x="104" y="236" class="mono" font-size="18" fill="#b8330f">LAYER 2 · few nodes, long links</text>
+  <rect x="96" y="396" width="234" height="28" fill="#f9f8f1"/>
+  <text x="104" y="416" class="mono" font-size="18" fill="#b8330f">LAYER 1 · more nodes</text>
+  <rect x="96" y="576" width="396" height="28" fill="#f9f8f1"/>
+  <text x="104" y="596" class="mono" font-size="18" fill="#b8330f">LAYER 0 · every vector, short links</text>
+
+  <!-- Right column: how a search runs -->
+  <text x="1000" y="236" class="mono" font-size="20" fill="#b8330f">HOW A SEARCH RUNS</text>
+
+  <text x="1000" y="282" class="head" font-size="26" fill="#e64b26">1</text>
+  <text x="1036" y="282" class="sans" font-size="22" fill="#17241f">Enter at the top entry point.</text>
+
+  <text x="1000" y="338" class="head" font-size="26" fill="#e64b26">2</text>
+  <text x="1036" y="338" class="sans" font-size="22" fill="#17241f">Hop to the neighbor closest to the</text>
+  <text x="1036" y="366" class="sans" font-size="22" fill="#17241f">query until no neighbor is closer.</text>
+
+  <text x="1000" y="422" class="head" font-size="26" fill="#e64b26">3</text>
+  <text x="1036" y="422" class="sans" font-size="22" fill="#17241f">Drop down one layer from that node</text>
+  <text x="1036" y="450" class="sans" font-size="22" fill="#17241f">and repeat.</text>
+
+  <text x="1000" y="506" class="head" font-size="26" fill="#e64b26">4</text>
+  <text x="1036" y="506" class="sans" font-size="22" fill="#17241f">At layer 0, keep a candidate list of</text>
+  <text x="1036" y="534" class="sans" font-size="22" fill="#17241f">size efSearch; return the nearest.</text>
+
+  <!-- Knobs box -->
+  <rect x="1000" y="570" width="520" height="270" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+  <text x="1032" y="612" class="mono" font-size="20" fill="#b8330f">KNOBS</text>
+
+  <text x="1032" y="652" class="mono" font-size="20" fill="#17241f">M</text>
+  <text x="1032" y="678" class="sans" font-size="20" fill="#526057">links per node: recall up, memory up</text>
+
+  <text x="1032" y="726" class="mono" font-size="20" fill="#17241f">efConstruction</text>
+  <text x="1032" y="752" class="sans" font-size="20" fill="#526057">build-time list: better graph, slower build</text>
+
+  <text x="1032" y="800" class="mono" font-size="20" fill="#17241f">efSearch</text>
+  <text x="1032" y="826" class="sans" font-size="20" fill="#526057">query-time list: recall up, latency up</text>
+
+  <!-- Footer -->
+  <text x="80" y="872" class="sans" font-size="20" fill="#526057">Approximate search: a little recall traded for far less work than comparing every vector. Source: Malkov &amp; Yashunin, 2016.</text>
+</svg>

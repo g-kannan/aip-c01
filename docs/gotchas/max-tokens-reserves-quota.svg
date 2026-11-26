@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="tokens-title tokens-desc">
+  <title id="tokens-title">Gotcha: max_tokens is reserved against tokens-per-minute quota at the start of a request</title>
+  <desc id="tokens-desc">Bedrock deducts input tokens plus max_tokens from TPM at the start of a request, then settles to the actual output at the end. A max_tokens of 32,000 reserves 36,000 tokens for a call that settles at 9,000. A max_tokens of 1,250 reserves 5,250 for the same call, so more calls fit under the quota.</desc>
+
+  <style>
+    .head { font-family: 'Archivo', Arial, sans-serif; font-weight: 800; }
+    .sans { font-family: 'Nunito', Arial, sans-serif; }
+    .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; }
+  </style>
+
+  <!-- Background: light slide tone from the deck palette -->
+  <rect x="0" y="0" width="1600" height="900" fill="#f4f2e9"/>
+
+  <!-- Heading -->
+  <text x="80" y="92" class="mono" font-size="24" fill="#b8330f">GOTCHA · TOKENS PER MINUTE</text>
+  <text x="80" y="160" class="head" font-size="56" fill="#17241f">max_tokens counts against TPM up front</text>
+
+  <!-- Left card: trap -->
+  <rect x="80" y="220" width="700" height="320" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+  <text x="120" y="256" class="mono" font-size="20" fill="#b8330f">TRAP</text>
+  <text x="120" y="330" class="head" font-size="40" fill="#17241f">max_tokens = 32,000</text>
+  <text x="120" y="390" class="sans" font-size="26" fill="#17241f">Reserved at start: 36,000 tokens</text>
+  <text x="120" y="426" class="sans" font-size="26" fill="#17241f">Actual use: 9,000 tokens</text>
+  <text x="120" y="478" class="sans" font-size="24" fill="#526057">Quota is held before the answer exists,</text>
+  <text x="120" y="508" class="sans" font-size="24" fill="#526057">so fewer calls fit under TPM.</text>
+
+  <!-- Right card: fix -->
+  <rect x="820" y="220" width="700" height="320" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+  <text x="860" y="256" class="mono" font-size="20" fill="#17241f">FIX</text>
+  <text x="860" y="330" class="head" font-size="40" fill="#17241f">max_tokens = 1,250</text>
+  <text x="860" y="390" class="sans" font-size="26" fill="#17241f">Reserved at start: 5,250 tokens</text>
+  <text x="860" y="426" class="sans" font-size="26" fill="#17241f">Actual use: 9,000 tokens</text>
+  <text x="860" y="478" class="sans" font-size="24" fill="#526057">Smaller hold; the same call costs</text>
+  <text x="860" y="508" class="sans" font-size="24" fill="#526057">the same, and more calls fit.</text>
+
+  <!-- Rule band -->
+  <rect x="80" y="580" width="1440" height="220" fill="#17241f"/>
+  <text x="120" y="632" class="mono" font-size="22" fill="#f2906f">RULE</text>
+  <text x="120" y="690" class="head" font-size="40" fill="#f4f2e9">Size max_tokens to typical output, not the maximum.</text>
+  <text x="120" y="740" class="sans" font-size="26" fill="#e6eae4">Reserved at start = input + max_tokens.</text>
+  <text x="120" y="774" class="sans" font-size="26" fill="#e6eae4">Settled at end = input + actual output × burndown rate.</text>
+
+  <!-- Footer -->
+  <text x="80" y="850" class="sans" font-size="20" fill="#526057">Source: AWS, How tokens are counted in Amazon Bedrock (quotas-token-burndown).</text>
+</svg>

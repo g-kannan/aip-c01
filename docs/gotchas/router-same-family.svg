@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="gotcha-title gotcha-desc">
+  <title id="gotcha-title">Gotcha: a router must hold exactly two models from the same family</title>
+  <desc id="gotcha-desc">A router must use exactly two models from the same family. Left: Nova Lite (Amazon family) paired with Llama 3.1 70B (Meta family) is marked not allowed, because different families cannot share one router. Right: Nova Lite and Nova Pro, both Amazon family, are marked allowed, because one router can hold that pair.</desc>
+
+  <style>
+    .head { font-family: 'Archivo', Arial, sans-serif; font-weight: 800; }
+    .sans { font-family: 'Nunito', Arial, sans-serif; }
+    .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; }
+  </style>
+
+  <!-- Background: light slide tone from the deck palette -->
+  <rect x="0" y="0" width="1600" height="900" fill="#f4f2e9"/>
+
+  <!-- Heading -->
+  <text x="80" y="92" class="mono" font-size="24" fill="#b8330f">GOTCHA · ROUTER</text>
+  <text x="80" y="160" class="head" font-size="56" fill="#17241f">A router holds exactly two same-family models</text>
+
+  <!-- Left card: mixed families, not allowed -->
+  <rect x="80" y="220" width="700" height="320" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+  <text x="120" y="256" class="mono" font-size="20" fill="#b8330f">NOT ALLOWED</text>
+
+  <rect x="120" y="300" width="280" height="110" fill="#f4f2e9" stroke="#c8cec3" stroke-width="2"/>
+  <text x="144" y="345" class="head" font-size="24" fill="#17241f">Nova Lite</text>
+  <text x="144" y="385" class="mono" font-size="18" fill="#b8330f">Amazon family</text>
+
+  <circle cx="430" cy="355" r="20" fill="#e64b26"/>
+  <line x1="419" y1="344" x2="441" y2="366" stroke="#f4f2e9" stroke-width="4" stroke-linecap="round"/>
+  <line x1="441" y1="344" x2="419" y2="366" stroke="#f4f2e9" stroke-width="4" stroke-linecap="round"/>
+
+  <rect x="460" y="300" width="280" height="110" fill="#f4f2e9" stroke="#c8cec3" stroke-width="2"/>
+  <text x="484" y="345" class="head" font-size="24" fill="#17241f">Llama 3.1 70B</text>
+  <text x="484" y="385" class="mono" font-size="18" fill="#b8330f">Meta family</text>
+
+  <text x="120" y="470" class="sans" font-size="26" fill="#17241f">Different families.</text>
+  <text x="120" y="506" class="sans" font-size="24" fill="#526057">One router cannot hold this pair.</text>
+
+  <!-- Right card: same family, allowed -->
+  <rect x="820" y="220" width="700" height="320" fill="#f9f8f1" stroke="#c8cec3" stroke-width="2"/>
+  <text x="860" y="256" class="mono" font-size="20" fill="#17241f">ALLOWED</text>
+
+  <rect x="860" y="300" width="280" height="110" fill="#dce9d4" stroke="#17241f" stroke-width="2"/>
+  <text x="884" y="345" class="head" font-size="24" fill="#17241f">Nova Lite</text>
+  <text x="884" y="385" class="mono" font-size="18" fill="#17241f">Amazon family</text>
+
+  <circle cx="1170" cy="355" r="20" fill="#17241f"/>
+  <polyline points="1158,356 1166,365 1183,344" fill="none" stroke="#f4f2e9" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="1200" y="300" width="280" height="110" fill="#dce9d4" stroke="#17241f" stroke-width="2"/>
+  <text x="1224" y="345" class="head" font-size="24" fill="#17241f">Nova Pro</text>
+  <text x="1224" y="385" class="mono" font-size="18" fill="#17241f">Amazon family</text>
+
+  <text x="860" y="470" class="sans" font-size="26" fill="#17241f">Same family.</text>
+  <text x="860" y="506" class="sans" font-size="24" fill="#526057">One router can hold this pair.</text>
+
+  <!-- Rule band -->
+  <rect x="80" y="580" width="1440" height="220" fill="#17241f"/>
+  <text x="120" y="632" class="mono" font-size="22" fill="#f2906f">RULE</text>
+  <text x="120" y="690" class="head" font-size="40" fill="#f4f2e9">Exactly two models, both from one family.</text>
+  <text x="120" y="740" class="sans" font-size="26" fill="#e6eae4">Nova Lite (Amazon) and Llama 3.1 70B (Meta) come from different families,</text>
+  <text x="120" y="774" class="sans" font-size="26" fill="#e6eae4">so one router cannot hold this pair.</text>
+
+  <!-- Footer -->
+  <text x="80" y="850" class="sans" font-size="20" fill="#526057">Check the model family before you wire up a router.</text>
+</svg>
