@@ -141,7 +141,7 @@ td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.
 <h1>Right model.<br>Right <span class="accent">tokens</span>.</h1>
 <div class="stripe"></div>
 <p class="lede" style="width: 1400px;">AGENTCOST02: how do you optimize agent model invocation and token consumption costs? Four best practices from the AWS Well-Architected Agentic AI Lens.</p>
-<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>01 / 14</p></div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>01 / 15</p></div>
 <aside>Frame the talk: foundation model spend can dominate an agentic budget. This deck covers what each call costs: which model, how many tokens, whether you needed to call at all, and whether a customized model would be cheaper. The previous deck (AGENTCOST01) covers how many calls the reasoning loop makes.</aside>
 </section>
 <section id="question" class="slide">
@@ -153,7 +153,7 @@ td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.
 <div class="card"><p class="tag">REUSE</p><h3>Cache and specialize</h3><p class="body">Serve repeats from caches. Run high-volume recurring tasks on customized models.</p></div>
 </div>
 <div class="band">Measure <span class="hl">cost per correct response</span>, token use, cache hit rate and escalation rate, per model tier.</div>
-<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>02 / 14</p></div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>02 / 15</p></div>
 <aside>The Lens says teams that right-size model selection to task complexity and optimize token consumption per invocation can reduce cost without sacrificing decision quality. The common issues are: every call defaults to the most capable model, system prompts and tool catalogs grow unreviewed, caching is treated as one-time setup, customization is pursued on low-volume work where training never pays back, and cost is tracked only in aggregate.</aside>
 </section>
 <section id="map" class="slide">
@@ -167,7 +167,7 @@ td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.
 <tr><td><span class="mono">BP04</span></td><td>Model customization</td><td><span class="rk hi">High</span></td><td>Smaller specialist for high-volume tasks</td></tr>
 </table>
 <div class="band">Three of the four are rated <span class="hl">High</span> risk if not established.</div>
-<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>03 / 14</p></div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>03 / 15</p></div>
 <aside>Each is a numbered best practice under AGENTCOST02. The risk column is the Lens rating for not establishing the practice: High for tiered model selection, caching and customization, Medium for prompt engineering.</aside>
 </section>
 <section id="bp01-tiers" class="slide">
@@ -180,7 +180,7 @@ td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.
 <tr><td>Complex</td><td>Open-ended analysis, multi-constraint optimization</td><td><span class="mono">above 0.7</span></td></tr>
 </table>
 <div class="band">A pre-classifier scores input length, format, constraint count and reasoning depth. It must <span class="hl">cost less than the tier price gap</span>.</div>
-<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>04 / 14</p></div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>04 / 15</p></div>
 <aside>Treating every invocation the same means paying complex-class prices for lightweight work. The pre-classifier can be rules or a small model. The score thresholds shown are the example values from the Lens, so tune them to your own task distribution. Also route document extraction to Amazon Bedrock Data Automation and audio interactions to Amazon Nova Sonic instead of sending raw images or audio to an expensive general-purpose model.</aside>
 </section>
 <section id="bp01-cascade" class="slide">
@@ -196,7 +196,7 @@ td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.
 <div class="step final"><p class="num">04</p><h3>Review</h3><p class="body">Quarterly: inspect escalation rates in Cost Explorer and CloudWatch.</p></div>
 </div>
 <div class="band">Benchmark with <span class="hl">AgentCore Evaluations</span> on your own task mix, measuring cost per correct response.</div>
-<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>05 / 14</p></div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>05 / 15</p></div>
 <aside>Cascading means the lower-tier model returns a self-assessed confidence and the request escalates only below the configured threshold. Fallback chains per task category move up a tier on timeout or failure instead of retrying the same model. Review routing policies quarterly using AWS Cost Explorer and CloudWatch dashboards, and adjust tiers when thresholds look mis-tuned. Specialized models can be both more accurate and cheaper than general-purpose ones for domain tasks, so include them in the benchmark.</aside>
 </section>
 <section id="bp01-pricing" class="slide">
@@ -210,7 +210,7 @@ td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.
 <div class="card"><p class="tag">RESERVED</p><h3>30 to 50% off</h3><p class="body">Commit for steady, high-volume workloads.</p></div>
 </div>
 <div class="band">Use <span class="hl">Amazon Bedrock batch inference</span> for anything that does not need an immediate answer.</div>
-<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>06 / 14</p></div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>06 / 15</p></div>
 <aside>Select the pricing tier per environment: Flex for development and testing, Standard for production, and Priority only for latency-sensitive user-facing agents. Batch inference can save up to 50 percent for non-time-sensitive work such as report generation, data enrichment and offline evaluation. Reserved Tier commitments are quoted at 30 to 50 percent savings for consistent high-volume workloads. Treat the percentages as the Lens's guidance and check current Bedrock pricing before you plan around them.</aside>
 </section>
 <section id="bp02" class="slide">
@@ -235,7 +235,7 @@ td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.
 </div>
 </div>
 <div class="band">Compression is a <span class="hl">fixed-cost cut</span>: it compounds across every invocation.</div>
-<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>07 / 14</p></div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>07 / 15</p></div>
 <aside>Audit prompts with AgentCore Observability to measure token footprints, then tighten role definitions and remove redundancy. The context split is the suggested allocation from the Lens, not a rule: system prompt 20 to 30 percent, user context 30 to 40, few-shot examples 10 to 20, agent scratchpad 20 to 30. Explicit formatting directives control output cost, and model-specific token limit parameters put a hard cap on response size.</aside>
 </section>
 <section id="bp02-steps" class="slide">
@@ -250,7 +250,7 @@ td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.
 <tr><td>5</td><td>Trim few-shot examples</td><td>Two or three, by similarity</td><td><span class="mono">Amazon S3</span> library</td></tr>
 <tr><td>6</td><td>Version prompts</td><td>Tokens and success rate per version</td><td><span class="mono">Cost Explorer</span> review</td></tr>
 </table>
-<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>08 / 14</p></div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>08 / 15</p></div>
 <aside>Step two is where tool catalogs stop growing the fixed cost: AgentCore Gateway uses MCP-based Semantic Tool Selection to present only relevant tools, and tool descriptions are compressed to a name, a one-sentence description and a concise parameter schema. Step five loads examples dynamically from an Amazon S3 hosted library by semantic similarity. Step six treats prompts as versioned artifacts, recording token count, task success rate and cost per task for each version, with a monthly review of cumulative savings against cost-per-task targets.</aside>
 </section>
 <section id="bp03" class="slide">
@@ -262,8 +262,35 @@ td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.
 <div class="card"><p class="tag">PLAN TEMPLATES</p><h3>Recurring plans</h3><p class="body">Key plans by task type and parameter signature, then fill in current parameters instead of re-planning.</p></div>
 </div>
 <div class="band">Each layer fails differently: <span class="hl">broken prefixes, weak thresholds, one-size TTLs</span>.</div>
-<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>09 / 14</p></div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>09 / 15</p></div>
 <aside>Prompt caching is the highest-impact layer for large stable system prompts; turn it on for agents whose system prompts exceed about 1,000 tokens. A higher similarity threshold reduces false positives but also reduces hit rate, so set it per task type. Plan template examples from the Lens are an onboarding checklist, a support triage decomposition and a reporting workflow plan.</aside>
+</section>
+<section id="bp03-compare" class="slide">
+<p class="eyebrow">BP03 / Prompt vs semantic</p>
+<h2>One reuses the prompt, one the answer.</h2>
+<p class="rk hi" style="margin-top: 36px;">PROMPT CACHE · THE MODEL STILL RUNS</p>
+<div class="flow" style="margin-top: 12px;">
+<div class="step" style="padding: 22px 26px; gap: 8px;"><h3 style="font-size: 34px;">Request</h3><p class="body" style="font-size: 26px;">System prompt and tools, then the question.</p></div>
+<p class="arrow">→</p>
+<div class="step" style="padding: 22px 26px; gap: 8px;"><h3 style="font-size: 34px;">Checkpoint</h3><p class="body" style="font-size: 26px;">The matching prefix is read from the cache.</p></div>
+<p class="arrow">→</p>
+<div class="step" style="padding: 22px 26px; gap: 8px;"><h3 style="font-size: 34px;">Model runs</h3><p class="body" style="font-size: 26px;">Only the new tokens are processed.</p></div>
+<p class="arrow">→</p>
+<div class="step final" style="padding: 22px 26px; gap: 8px;"><h3 style="font-size: 34px;">Fresh answer</h3><p class="body" style="font-size: 26px;">Saves input cost and time to first token.</p></div>
+</div>
+<p class="rk hi" style="margin-top: 28px;">SEMANTIC CACHE · THE MODEL MAY NOT RUN</p>
+<div class="flow" style="margin-top: 12px;">
+<div class="step" style="padding: 22px 26px; gap: 8px;"><h3 style="font-size: 34px;">Embed</h3><p class="body" style="font-size: 26px;">Turn the question into a vector.</p></div>
+<p class="arrow">→</p>
+<div class="step" style="padding: 22px 26px; gap: 8px;"><h3 style="font-size: 34px;">Search</h3><p class="body" style="font-size: 26px;">Nearest stored question against the threshold.</p></div>
+<p class="arrow">→</p>
+<div class="step final" style="padding: 22px 26px; gap: 8px;"><h3 style="font-size: 34px;">Hit: reuse</h3><p class="body" style="font-size: 26px;">Return the stored answer. No model call.</p></div>
+<p class="arrow" style="font-size: 30px;">or</p>
+<div class="step" style="padding: 22px 26px; gap: 8px;"><h3 style="font-size: 34px;">Miss: call</h3><p class="body" style="font-size: 26px;">Call the model, then store the answer.</p></div>
+</div>
+<div class="band" style="margin-top: 36px;">Prompt cache for a <span class="hl">big stable prefix</span>. Semantic cache for <span class="hl">repeated questions, same answer</span>.</div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>10 / 15</p></div>
+<aside>Prompt caching keeps the model in the loop: the cached prefix (system prompt, tool definitions, long documents, earlier turns) is read instead of reprocessed, so you save input-token cost and time to first token, but every answer is generated fresh. It needs an exact prefix match, so keep stable content first and variable content last, and the cache expires after a short period of no use. Semantic caching is an application layer you build: embed the question, search a vector store, and above the similarity threshold return the stored answer with no model call. It saves the whole call, but a false match returns a wrong or stale answer, so set the threshold per task type, include the user or tenant in the key for permissioned answers, and invalidate on source changes. Combine them: semantic cache in front, prompt caching on the model call behind it. Exam cues: repeated long context points to prompt caching; similar questions from many users, avoid invoking the model, points to semantic caching; identical requests need only a plain key-value cache. Verify current Bedrock cache TTLs and per-model minimum checkpoint sizes in the documentation.</aside>
 </section>
 <section id="bp03-keep" class="slide">
 <p class="eyebrow">BP03 / Keep it honest</p>
@@ -281,7 +308,7 @@ td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.
 <div class="card"><p class="tag">ANTI-PATTERNS</p><p class="body">Identical prompts at full input price.</p><p class="body">Exact-match lookups that miss rephrased requests.</p><p class="body">One TTL for every task.</p></div>
 </div>
 </div>
-<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>10 / 14</p></div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>11 / 15</p></div>
 <aside>Event-driven invalidation purges entries when source data changes. Build CloudWatch dashboards and alarms for hit rates across the prompt, semantic and plan-template caches, and use AWS Cost Explorer for the savings view. AgentCore Memory session identifiers also keep multi-turn state without manual history concatenation, which is a related way to stop re-sending the same tokens.</aside>
 </section>
 <section id="bp04-math" class="slide">
@@ -304,7 +331,7 @@ td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.
 <div class="stat"><p class="big">10k+</p><p class="body">invocations a month: typically 6 to 12 months to break even</p></div>
 </div>
 </div>
-<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>11 / 14</p></div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>12 / 15</p></div>
 <aside>Start with the break-even analysis. The Lens example says monthly inference cost above 500 dollars and volume above 10,000 invocations a month typically reaches break-even within 6 to 12 months. The worked example in the formula is a 5,000 dollar training run saving 400 dollars a month: 5,000 divided by 400 is 12.5, so it breaks even at month 13, ignoring refresh cost. Customization pays off when volume and task stability are both high, and it does not pay off on low-volume categories.</aside>
 </section>
 <section id="bp04-flow" class="slide">
@@ -320,7 +347,7 @@ td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.
 <div class="step final"><p class="num">04</p><h3>Refresh</h3><p class="body">Quarterly retrain. A/B validation is the promotion gate.</p></div>
 </div>
 <div class="band">Track latency, token cost and quality side by side, so savings never <span class="hl">mask a quality drop</span>.</div>
-<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>12 / 14</p></div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>13 / 15</p></div>
 <aside>Training data comes from filtered production logs of high-confidence, successful completions, with a sample reviewed manually; the Lens warns against fine-tuning on synthetic data that misrepresents production. QLoRA quantizes base weights to four bits and trains only adapters, which makes single-GPU fine-tuning practical. Options named are Amazon Bedrock model customization jobs, Amazon SageMaker AI Training Jobs with QLoRA, and Amazon Bedrock Custom Model Import. Customization is a pipeline, not a one-off project: schedule quarterly refreshes and gate promotion on A/B validation so drift does not compound silently.</aside>
 </section>
 <section id="anti" class="slide dark">
@@ -333,7 +360,7 @@ td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.
 <div class="card"><p class="tag">BP04</p><h3>Premature training</h3><p class="body">Synthetic data. Low-volume tasks. One-off projects. Traffic moved without A/B tests.</p></div>
 </div>
 <div class="band">Aggregate-only cost tracking hides these. <b>Break costs down by model tier.</b></div>
-<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>13 / 14</p></div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>14 / 15</p></div>
 <aside>Read across the four. BP01 uses the largest model everywhere and cannot see cost by tier. BP02 treats prompts as uncontrolled strings. BP03 caches by exact match or with one TTL. BP04 customizes models for work that will never repay the training cost or without validating quality.</aside>
 </section>
 <section id="metrics" class="slide dark">
@@ -347,7 +374,7 @@ td .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.
 <tr><td>Cache hit rate, per layer</td><td>Whether caches are going stale</td><td><span class="mono">BP03</span></td></tr>
 </table>
 <div class="band">Related: AGENTCOST01, AGENTCOST03, AGENTCOST05. Source: AWS Well-Architected Agentic AI Lens.</div>
-<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>14 / 14</p></div>
+<div class="footer"><p>AGENTCOST02 · Model invocation and token cost</p><p>15 / 15</p></div>
 <aside>Close on measurement. The Lens names cost per correct response, token consumption, cache hit rate and cascade escalation rate as the things to track per model tier. For customized models, add inference savings alongside decision quality so a cheaper tier never hides a quality loss. The best practices cross-reference AGENTCOST01, AGENTCOST03 and AGENTCOST05; see the related list on each practice page. Source for the whole deck: the AGENTCOST02 pages of the AWS Well-Architected Framework Agentic AI Lens.</aside>
 </section>
 </main></div>

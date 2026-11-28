@@ -122,3 +122,17 @@ def fit_to_window(chunks: list[str], budget_tokens: int) -> tuple[list[str], lis
 
 def contains_all(text: str, needles: tuple[str, ...]) -> bool:
     return all(needle.lower() in text.lower() for needle in needles)
+
+
+# One ChunkingConfiguration per strategy, as sent to bedrock-agent CreateDataSource. The tests validate these
+# against the botocore model; docs/chunking-configuration.md explains the fields and when to choose each.
+CHUNKING_CONFIGS: dict[str, dict] = {
+    "FIXED_SIZE": {"chunkingStrategy": "FIXED_SIZE",
+                   "fixedSizeChunkingConfiguration": {"maxTokens": 300, "overlapPercentage": 20}},
+    "HIERARCHICAL": {"chunkingStrategy": "HIERARCHICAL",
+                     "hierarchicalChunkingConfiguration": {"levelConfigurations": [{"maxTokens": 1500}, {"maxTokens": 300}],
+                                                           "overlapTokens": 60}},
+    "SEMANTIC": {"chunkingStrategy": "SEMANTIC",
+                 "semanticChunkingConfiguration": {"maxTokens": 300, "bufferSize": 1, "breakpointPercentileThreshold": 95}},
+    "NONE": {"chunkingStrategy": "NONE"},
+}

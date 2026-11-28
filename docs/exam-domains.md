@@ -33,10 +33,10 @@ Tick a task when you can explain it **and** have seen it work (a lab, a demo, or
   - *Repo:* **Lab** (Knowledge Base Lab: vector-store vs managed KB, `*.metadata.json` sidecars). **Slides** 08 (store trade-offs, sync and refresh). Gap: no hands-on ingestion-job demo.
 - [ ] **Task 1.5 — Design retrieval for model augmentation**
   - Choose chunking/segmentation and embedding strategies; configure vector search; improve relevance with hybrid search and reranking; use query expansion, decomposition, or transformation; expose retrieval through consistent APIs, function calls, or MCP.
-  - *Repo:* **Lab** (Knowledge Base Lab: Retrieve vs RetrieveAndGenerate, SEMANTIC/HYBRID, reranking, filters, citations; Chunking Playground). **Slides** 08. `resources/` holds RAG, Self-RAG, and tool-use papers. Gap: query expansion/decomposition and MCP are slides only.
+  - *Repo:* **Lab** (Knowledge Base Lab: Retrieve vs RetrieveAndGenerate, SEMANTIC/HYBRID, reranking, filters, citations; Chunking Playground). **Slides** 08. Chunking API fields, ranges, and how to choose a strategy: `docs/chunking-configuration.md`. `resources/` holds RAG, Self-RAG, and tool-use papers. Gap: query expansion/decomposition and MCP are slides only.
 - [ ] **Task 1.6 — Engineer and govern prompts**
   - Create instructions, templates, and guardrails; preserve conversational context; establish prompt versioning, approvals, and audit logs; test prompts and regressions; iteratively improve output quality; design prompt chains and conditional flows.
-  - *Repo:* **Lab** (Prompt Lab: variables, immutable versions, approval, promotion and rollback, audit log, regression test, Bedrock Prompt management). **Slides** 12. Gap: Bedrock Flows are slides only.
+  - *Repo:* **Lab** (Prompt Lab: variables, immutable versions, approval, promotion and rollback, audit log, regression test, Bedrock Prompt management). **Slides** 12. Orchestrator choice (Step Functions, Bedrock Flows, agents, traces): `docs/supporting-services.md`. Gap: Bedrock Flows are slides only.
 
 ## Domain 2 — Implementation and Integration (26%)
 

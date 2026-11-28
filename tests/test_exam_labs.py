@@ -287,6 +287,21 @@ class RequestShapeTests(unittest.TestCase):
             for source, text, grounding, query in (("INPUT", "hello", "", ""), ("OUTPUT", "answer", "source passage", "question?")):
                 client.apply_guardrail(**safety.build_apply_request("abc123", "DRAFT", source, text, grounding, query))
 
+    def test_chunking_configs_match_the_service_model(self):
+        from botocore.exceptions import ParamValidationError
+        from botocore.validate import validate_parameters
+        client, _ = self.client("bedrock-agent")
+        shape = client.meta.service_model.shape_for("ChunkingConfiguration")
+        self.assertEqual(set(chunking.CHUNKING_CONFIGS), {"FIXED_SIZE", "HIERARCHICAL", "SEMANTIC", "NONE"})
+        for name, config in chunking.CHUNKING_CONFIGS.items():
+            with self.subTest(strategy=name):
+                validate_parameters(config, shape)
+        # The API does not allow zero overlap for fixed-size chunking (overlapPercentage starts at 1).
+        zero_overlap = {"chunkingStrategy": "FIXED_SIZE",
+                        "fixedSizeChunkingConfiguration": {"maxTokens": 300, "overlapPercentage": 0}}
+        with self.assertRaises(ParamValidationError):
+            validate_parameters(zero_overlap, shape)
+
     def test_prompt_management_and_prompt_arn_converse_are_valid(self):
         client, stub = self.client("bedrock-agent")
         template = prompts.IMPROVED_TEMPLATE

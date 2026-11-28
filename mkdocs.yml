@@ -1,0 +1,73 @@
+site_name: AIP-C01 study site
+site_description: Notes, diagrams, slide decks and labs for the AWS Certified Generative AI Developer – Professional exam.
+docs_dir: docs
+site_dir: site
+use_directory_urls: true
+
+theme:
+  name: material
+  language: en
+  font:
+    text: Nunito
+    code: IBM Plex Mono
+  palette:
+    # Dark is the default whatever the OS prefers; the header toggle switches to light and remembers the choice.
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light theme
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark theme
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - toc.follow
+
+plugins:
+  - search:
+      lang: en
+  - glightbox:
+      zoomable: true
+      draggable: false
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+extra_css:
+  - stylesheets/extra.css
+
+# Pulls slides/, README.md and (optionally) the study guide in from outside docs/.
+hooks:
+  - hooks/mkdocs_hooks.py
+
+nav:
+  - Home: index.md
+  - Exam map: exam-domains.md
+  - Supporting services: supporting-services.md
+  - Chunking configuration: chunking-configuration.md
+  - Diagrams: diagrams.md
+  - Gotchas: gotchas.md
+  - Slide decks: decks.md
+  - Labs and setup: labs.md

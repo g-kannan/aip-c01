@@ -147,7 +147,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h1>If you cannot <span class="accent">see</span> it,<br>you cannot fix it.</h1>
 <div class="stripe"></div>
 <p class="lede" style="width: 1400px;">What to measure in a GenAI application, how to trace one request end to end, where latency goes, and how to catch drift before users do.</p>
-<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>01 / 09</p></div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>01 / 11</p></div>
 <aside>GenAI applications fail in ways ordinary monitoring does not show: answers get worse while every health check stays green. This deck separates operational signals, cost signals, quality signals and business signals. Demo: the Eval Harness prints p50, p95, tokens and cost per candidate.</aside>
 </section>
 <section id="s2" class="slide">
@@ -155,7 +155,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Watch four things, not one.</h2>
 <div class="cards tight five"><div class="card"><p class="tag">SERVICE</p><h3>Is it up and fast?</h3><p class="body">Invocations, latency, throttles, client and server errors.</p></div><div class="card"><p class="tag">COST</p><h3>What does it spend?</h3><p class="body">Input and output tokens, cache hits, cost per request.</p></div><div class="card"><p class="tag">QUALITY</p><h3>Is it any good?</h3><p class="body">Eval scores, groundedness, hallucination checks, user feedback.</p></div><div class="card"><p class="tag">BUSINESS</p><h3>Does it help?</h3><p class="body">Task success, escalation rate, resolution time.</p></div></div>
 <div class="band">A green dashboard with <span class="hl">falling quality</span> is the classic GenAI incident.</div>
-<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>02 / 09</p></div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>02 / 11</p></div>
 <aside>Operational dashboards alone miss quality drift. Quality and business signals need explicit measurement: a golden dataset, sampled human review, user thumbs, and downstream outcomes.</aside>
 </section>
 <section id="s3" class="slide">
@@ -163,23 +163,39 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>What Bedrock publishes to CloudWatch.</h2>
 <table class="dense" style="font-size: 26px;"><tr><th style="width: 36%;">Metric</th><th style="width: 64%;">Tells you</th></tr><tr><td><span class="mono">Invocations</span></td><td>Request volume per model</td></tr><tr><td><span class="mono">InvocationLatency</span></td><td>Time per call; alarm on p95, not the average</td></tr><tr><td><span class="mono">InputTokenCount</span>, <span class="mono">OutputTokenCount</span></td><td>Token use, the base of cost</td></tr><tr><td><span class="mono">InvocationThrottles</span></td><td>You are hitting quota or rate limits</td></tr><tr><td><span class="mono">InvocationClientErrors</span>, <span class="mono">InvocationServerErrors</span></td><td>Your bug versus theirs</td></tr></table>
 <div class="band">Namespace <span class="mono">AWS/Bedrock</span>, dimension <span class="mono">ModelId</span>. Verify the current list in the CloudWatch docs.</div>
-<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>03 / 09</p></div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>03 / 11</p></div>
 <aside>Averages hide the slow tail; users complain about p95 and p99. Metric names and dimensions can change as the service evolves, so confirm them in the Bedrock monitoring documentation. Streaming adds time-to-first-token, which you should also track.</aside>
+</section>
+<section id="s3b" class="slide">
+<p class="eyebrow">02 / Fleet alarms</p>
+<h2>Alarm on the fleet, not one model.</h2>
+<div class="cards" style="margin-top: 44px;"><div class="card" style="padding: 30px; gap: 14px;"><p class="tag">TRAP</p><h3>Filtering by ModelId undercounts</h3><p class="body" style="font-size: 26px;">Bedrock publishes metrics with and without <code>ModelId</code>. A request that fails before Bedrock knows the model is published without it.</p></div><div class="card" style="padding: 30px; gap: 14px;"><p class="tag">FIX</p><h3>Query without the dimension</h3><p class="body" style="font-size: 26px;">Alarm on <code>InvocationClientErrors</code>, <code>InvocationServerErrors</code> and <code>InvocationThrottles</code> with no <code>ModelId</code> filter.</p></div><div class="card" style="padding: 30px; gap: 14px;"><p class="tag">TRAP</p><h3>Invocations is not a failure total</h3><p class="body" style="font-size: 26px;">It counts accepted requests only. Throttled requests and input-validation rejections are left out, so it undercounts failed attempts.</p></div></div>
+<div class="band" style="margin-top: 36px;">Per-model dashboards still use <span class="hl">ModelId</span>. Fleet alarms must not.</div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>04 / 11</p></div>
+<aside>Amazon Bedrock publishes its AWS/Bedrock runtime metrics both with and without the ModelId dimension. If a request fails before Bedrock determines which model it targets, the metrics for that request are published without ModelId, so filtering by ModelId can undercount errors; to account for all requests, query the metrics without specifying a dimension. For fleet-level alarms, use InvocationClientErrors, InvocationServerErrors and InvocationThrottles without the ModelId dimension. The Invocations metric counts requests Bedrock accepted for processing, including ones that later failed with a client or server error, but it does not include throttled requests or requests rejected during input validation before processing began. Throttled requests are not counted in Invocations, InvocationClientErrors or InvocationServerErrors, and the throttle count depends on SDK retry settings. InvocationClientErrors does include requests rejected for exceeding a service quota, and those are not counted as throttles. These are operational signals for alarms and dashboards; they do not calculate semantic KPIs such as hallucination rate or prompt effectiveness. AWS does not say whether input-validation rejections appear in InvocationClientErrors, so verify before building a failure-rate formula.</aside>
 </section>
 <section id="s4" class="slide">
 <p class="eyebrow">03 / Logs</p>
 <h2>Model invocation logging.</h2>
-<div class="cards"><div class="card"><p class="tag">WHAT</p><h3>Request and response</h3><p class="body">Prompts, completions, token counts and metadata for each call.</p></div><div class="card"><p class="tag">WHERE</p><h3>CloudWatch Logs or S3</h3><p class="body">Off by default. Choose the destination, encryption and retention.</p></div><div class="card"><p class="tag">CAUTION</p><h3>It is sensitive data</h3><p class="body">Logs can hold PII. Mask before the call, restrict access, expire them.</p></div></div>
+<div class="cards"><div class="card"><p class="tag">WHAT</p><h3>Request and response</h3><p class="body">Prompts, completions, token counts and metadata for each call.</p></div><div class="card"><p class="tag">WHERE</p><h3>CloudWatch Logs or S3</h3><p class="body">Off by default; set per account and Region. CloudWatch Logs, S3 or both, in the same account and Region.</p></div><div class="card"><p class="tag">CAUTION</p><h3>It is sensitive data</h3><p class="body">Logs can hold PII. Mask before the call, restrict access, expire them.</p></div></div>
 <div class="band">For your own app logs, write <span class="hl">structured JSON</span> so metric filters can count failures by type.</div>
-<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>04 / 09</p></div>
-<aside>A structured record such as release, test_case, pass, failure_type and score lets a metric filter and alarm detect new failure types. Metric filters create metrics from new events; they do not backfill.</aside>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>05 / 11</p></div>
+<aside>A structured record such as release, test_case, pass, failure_type and score lets a metric filter and alarm detect new failure types. Metric filters create metrics from new events; they do not backfill. Logging is set with PutModelInvocationLoggingConfiguration, and only calls through the bedrock-runtime endpoint are captured.</aside>
+</section>
+<section id="s4b" class="slide">
+<p class="eyebrow">03 / Request metadata</p>
+<h2>Tag every call with its prompt version.</h2>
+<div class="cards" style="margin-top: 44px;"><div class="card" style="padding: 30px; gap: 14px;"><p class="tag">SEND</p><h3>requestMetadata</h3><p class="body" style="font-size: 26px;">Up to 16 string key-value pairs. Converse and ConverseStream take a body field; InvokeModel takes the <code>X-Amzn-Bedrock-Request-Metadata</code> header.</p></div><div class="card" style="padding: 30px; gap: 14px;"><p class="tag">RECORDED</p><h3>In the invocation log</h3><p class="body" style="font-size: 26px;">Added as a top-level field, only when logging is enabled in the Region where the call is made.</p></div><div class="card" style="padding: 30px; gap: 14px;"><p class="tag">USE</p><h3>Group by prompt version</h3><p class="body" style="font-size: 26px;">Sum tokens and sample failures per version to find the release that changed cost or quality.</p></div></div>
+<div class="band" style="margin-top: 36px;">Runtime metrics do not calculate <span class="hl">hallucination rate or prompt effectiveness</span>. The logs feed the evaluation that does.</div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>06 / 11</p></div>
+<aside>Model invocation logging is the better source for detailed request and response analysis. It is disabled by default, is configured per account and Region, and can send records to CloudWatch Logs, Amazon S3, or both, but only to destinations in the same account and Region. Add the prompt version through requestMetadata: Converse and ConverseStream accept a requestMetadata body field, and InvokeModel and InvokeModelWithResponseStream accept the X-Amzn-Bedrock-Request-Metadata header as a JSON object of string keys and values. Bedrock records it as a top-level requestMetadata field in the invocation log, only when logging is enabled in the Region where the call is made. Limits: at most 16 entries, with keys and values up to 256 characters each. Requests that omit it still succeed, so enforce the tag in your own code. It is not a cost allocation tag and does not appear in Cost Explorer; for that use application inference profiles, or join the logs to the cost and usage report on requestId. With SigV4, the header must be included in the signed headers. Logging only captures calls made through the bedrock-runtime endpoint. AWS pages do not describe quality KPIs: hallucination rate and prompt effectiveness come from evaluation of the logged requests and responses, covered in deck 11.</aside>
 </section>
 <section id="s5" class="slide">
 <p class="eyebrow">04 / Trace</p>
 <h2>Follow one request through every hop.</h2>
 <div class="flow"><div class="step tight"><p class="num">1 / EDGE</p><h3>API Gateway</h3><p class="body">Assign a correlation ID; enable tracing.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">2 / APP</p><h3>Lambda</h3><p class="body">Segments for retrieval, prompt build, model call, validation.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">3 / MODEL</p><h3>Bedrock call</h3><p class="body">A subsegment with model ID, tokens, latency, retries.</p></div><div class="arrow">&rarr;</div><div class="step final tight"><p class="num">4 / TOOLS</p><h3>Agent steps</h3><p class="body">Trace each tool call and the reasoning that chose it.</p></div></div>
 <div class="band">Agent <span class="hl">trace events</span> show which source and tool produced an answer, so keep them with the case record.</div>
-<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>05 / 09</p></div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>07 / 11</p></div>
 <aside>X-Ray gives end-to-end tracing across API Gateway, Lambda and downstream calls, which isolates where latency and retries occur. For Bedrock Agents, enabling the trace on InvokeAgent returns reasoning and tool-selection events useful for audit.</aside>
 </section>
 <section id="s6" class="slide">
@@ -187,14 +203,14 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Where does the time go?</h2>
 <table class="dense" style="font-size: 26px;"><tr><th style="width: 34%;">Piece</th><th style="width: 66%;">Lever</th></tr><tr><td>Time to first token</td><td>Stream the response; choose a smaller model; shorter prompt</td></tr><tr><td>Retrieval</td><td>Right-size k, filter by metadata, tune the index, run in parallel with other work</td></tr><tr><td>Model generation</td><td>Cap output tokens; smaller or faster model; latency-optimized inference where supported</td></tr><tr><td>Waiting on throttles</td><td>Retries cost time: raise quota, spread across Regions, provisioned throughput</td></tr><tr><td>Repeated work</td><td>Precompute, cache prompt prefixes, cache whole answers where safe</td></tr></table>
 <div class="band">Measure first. <span class="hl">Then</span> optimize the biggest slice.</div>
-<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>06 / 09</p></div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>08 / 11</p></div>
 <aside>Streaming does not reduce total time but it improves perceived latency. Some models and profiles support an optimized-latency setting: check support with GetFoundationModel. Parallelism applies to independent steps such as several retrievals or tool calls.</aside>
 </section>
 <section id="s7" class="slide">
 <p class="eyebrow">06 / Cost</p>
 <h2>Attribute spend to something.</h2>
 <div class="cards"><div class="card"><p class="tag">TAG</p><h3>Application inference profiles</h3><p class="body">Create one per assistant or tenant, with cost-allocation tags, then read usage and cost per profile.</p></div><div class="card"><p class="tag">RATIO</p><h3>Cost per 1,000 successes</h3><p class="body">Tokens times price, divided by successful answers. Failed calls still cost.</p></div><div class="card"><p class="tag">ALERT</p><h3>Budget alarms</h3><p class="body">Alarm on a token spike so a loop or a bug does not run all weekend.</p></div></div>
-<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>07 / 09</p></div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>09 / 11</p></div>
 <aside>Application inference profiles wrap a model or cross-Region profile so usage can be attributed. Slides 03 and 04 cover the levers that reduce the spend itself.</aside>
 </section>
 <section id="s8" class="slide">
@@ -202,7 +218,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Catch quality drift before users do.</h2>
 <div class="flow"><div class="step tight"><p class="num">1 / BASELINE</p><h3>Golden set</h3><p class="body">A fixed dataset with expected behaviour, versioned.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">2 / REPLAY</p><h3>On a schedule</h3><p class="body">Run it nightly and on every prompt or model change.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">3 / DIFF</p><h3>Compare outputs</h3><p class="body">Pass rate, score, and output diffs against the baseline.</p></div><div class="arrow">&rarr;</div><div class="step final tight"><p class="num">4 / ALARM</p><h3>Threshold</h3><p class="body">Page the owner when a metric crosses the line.</p></div></div>
 <div class="band">Also watch retrieval health: <span class="hl">empty-result rate</span>, top score, index freshness.</div>
-<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>08 / 09</p></div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>10 / 11</p></div>
 <aside>Drift sources: a model version change, a prompt edit, new data, a stale index, or user behaviour changing. The Eval Harness in exam_app.py is a small version of this loop.</aside>
 </section>
 <section id="wrap" class="slide dark">
@@ -210,7 +226,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Measure the right things.</h2>
 <div class="cards"><div class="card"><p class="tag">SIGNALS</p><h3>Four layers</h3><p class="body">Service, cost, quality, business.</p></div><div class="card"><p class="tag">TRACE</p><h3>End to end</h3><p class="body">One correlation ID from the edge to the tool.</p></div><div class="card"><p class="tag">REPLAY</p><h3>Golden set</h3><p class="body">Catch drift with fixed cases and alarms.</p></div></div>
 <div class="band">Try it: the scorecard in the <span class="hl">Eval Harness</span>.</div>
-<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>09 / 09</p></div>
+<div class="footer"><p>Amazon Bedrock · Monitoring and performance</p><p>11 / 11</p></div>
 <aside>Close by asking: if answer quality dropped tomorrow, which chart would tell you first?</aside>
 </section>
 </main></div>

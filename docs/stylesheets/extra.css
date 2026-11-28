@@ -1,0 +1,33 @@
+/* Brand colours follow the slide decks: orange-red accent on a dark green-black / warm paper base. */
+:root,
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #17241f;
+  --md-primary-fg-color--light: #2f433a;
+  --md-primary-fg-color--dark: #0f1915;
+  --md-accent-fg-color: #b8330f;
+  --md-typeset-a-color: #b8330f;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color: #131a17;
+  --md-default-fg-color: #e6eae4;
+  --md-default-fg-color--light: #b9c4bc;
+  --md-primary-fg-color: #17241f;
+  --md-primary-fg-color--light: #2f433a;
+  --md-primary-fg-color--dark: #0f1915;
+  --md-accent-fg-color: #f2906f;
+  --md-typeset-a-color: #f2906f;
+  --md-code-bg-color: #1c2823;
+}
+
+/* The diagrams are drawn on a light slide tone. Give them a card edge so they sit well on the dark theme. */
+.md-typeset img[src$=".svg"] {
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* Deck list on the slides page */
+.md-typeset table:not([class]) td:first-child {
+  white-space: nowrap;
+}

@@ -321,6 +321,27 @@ Run the unit tests (they mock AWS and need no resources) from the repository roo
 uv run python -m unittest discover -s tests -v
 ```
 
+## Study site
+
+`mkdocs.yml` builds the docs, diagrams, gotchas, slide decks and this README into one searchable site (MkDocs
+Material, dark theme by default with a light toggle). The tools are dev dependencies, so `uv sync` installs them.
+
+```powershell
+uv run mkdocs serve          # live preview at http://127.0.0.1:8000, with search
+uv run mkdocs build --strict # static site in site/ (ignored by git)
+```
+
+Each slide deck also becomes a site page, one section per slide with the speaker notes folded under it, generated
+from the deck HTML at build time (`hooks/deck_to_markdown.py`), so search covers slide text. Edit the deck, not the
+page. The live decks are copied in unchanged and still open as standalone presentations. The
+Streamlit labs need AWS, so they run locally and are not part of the site. The study guide is gitignored, so the
+site leaves it out. To include it in a local build, set `INCLUDE_STUDY_GUIDE=1` (`$env:INCLUDE_STUDY_GUIDE=1` in
+PowerShell), and do not deploy that build.
+
+**Where content lives.** Reference and definitions (what a service is, field tables, how to choose) go in
+`docs/*.md`, which is the source and is read as a page. Teaching visuals go in `slides/`, which is the source for
+the deck and is turned into a page automatically. Do not copy content between the two.
+
 ## Exam demos and slides
 
 Two separate things sit beside the labs above, both mapped to the AIP-C01 exam tasks in

@@ -147,7 +147,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h1>Protect the data.<br><span class="accent">Prove</span> what happened.</h1>
 <div class="stripe"></div>
 <p class="lede" style="width: 1400px;">Network and identity isolation, PII handling, retention, audit trails, model documentation and responsible-AI practices.</p>
-<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>01 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>01 / 11</p></div>
 <aside>Three tasks in one deck: data security and privacy, governance and compliance, and responsible AI. The common thread is evidence: you must be able to show who called what, with which prompt, model and sources.</aside>
 </section>
 <section id="s2" class="slide">
@@ -155,7 +155,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Keep traffic private.</h2>
 <div class="cards"><div class="card"><p class="tag">NETWORK</p><h3>Interface VPC endpoint</h3><p class="body">Reach <span class="mono">bedrock-runtime</span> over PrivateLink from private subnets. No internet gateway or NAT needed.</p></div><div class="card"><p class="tag">POLICY</p><h3>Endpoint policy</h3><p class="body">Restrict which principals and models the endpoint allows. Combine with <span class="mono">aws:SourceVpce</span> in IAM.</p></div><div class="card"><p class="tag">PRIVACY</p><h3>Provider isolation</h3><p class="body">Bedrock does not use your prompts or answers to train base models, and does not share them with model providers.</p></div></div>
 <div class="band">Private API variant: <span class="hl">execute-api endpoint</span> allow-list in front, Bedrock endpoint behind.</div>
-<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>02 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>02 / 11</p></div>
 <aside>Two endpoints appear in a private design: an execute-api interface endpoint for callers of your private REST API, and a bedrock-runtime interface endpoint for the Lambda calling the model. Check the current Bedrock data-protection page for the exact wording of the privacy commitments.</aside>
 </section>
 <section id="s3" class="slide">
@@ -163,7 +163,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Least privilege at every hop.</h2>
 <table class="dense" style="font-size: 26px;"><tr><th style="width: 26%;">Who</th><th style="width: 36%;">Gets</th><th style="width: 38%;">Scoped to</th></tr><tr><td>Caller</td><td><span class="mono">execute-api:Invoke</span></td><td>One API route ARN</td></tr><tr><td>Lambda role</td><td><span class="mono">bedrock:InvokeModel</span></td><td>Approved model and profile ARNs</td></tr><tr><td>Platform admin</td><td>Marketplace subscription rights</td><td>Separate from runtime invoke</td></tr><tr><td>Knowledge Base role</td><td>S3 read, vector store, embedding model</td><td>One bucket, one index</td></tr><tr><td>Organization</td><td>SCP on Regions and models</td><td>Cross-Region profiles need the profile ARN allowed</td></tr></table>
 <div class="band">This repo: the gateway template grants invoke on the <span class="hl">supplied ARNs only</span>.</div>
-<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>03 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>03 / 11</p></div>
 <aside>Subscribing to a Marketplace-backed model and invoking it are different privileges. A Region-restricting SCP can conflict with a global cross-Region inference profile; check which Regions the profile may route to.</aside>
 </section>
 <section id="s4" class="slide">
@@ -171,15 +171,27 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Find it, mask it, then store less.</h2>
 <div class="flow"><div class="step tight"><p class="num">1 / DETECT</p><h3>Find PII</h3><p class="body">Guardrail sensitive-information policy, Comprehend, or Macie for S3.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">2 / MASK</p><h3>Anonymize</h3><p class="body">Replace with placeholders before the prompt and before logging.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">3 / MINIMIZE</p><h3>Store less</h3><p class="body">Keep tokens or hashes, not raw values, where you can.</p></div><div class="arrow">&rarr;</div><div class="step final tight"><p class="num">4 / EXPIRE</p><h3>Retention</h3><p class="body">Set a TTL or lifecycle rule; review who can read the store.</p></div></div>
 <div class="band">Masking before the model also keeps PII out of <span class="hl">invocation logs</span>.</div>
-<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>04 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>04 / 11</p></div>
 <aside>Detection is not perfect, so do not rely on a single detector. Mask before sending to the model if the model does not need the value. Retention rules stop old data piling up.</aside>
+</section>
+<section id="s4b" class="slide">
+<p class="eyebrow">03 / PII filter limits</p>
+<h2>Guardrail PII filters have blind spots.</h2>
+<div class="cards" style="margin-top: 44px;">
+<div class="card" style="padding: 30px; gap: 14px;"><p class="tag">WHAT IT CHECKS</p><h3>Prompts and answers</h3><p class="body" style="font-size: 26px;">Text sent to the model and returned by it. Block it, or mask it as <code>{EMAIL}</code>. ML-based and context-dependent; add custom regex for your own patterns.</p></div>
+<div class="card" style="padding: 30px; gap: 14px;"><p class="tag">NOT EVALUATED</p><h3>Tool calls</h3><p class="body" style="font-size: 26px;">Tool call arguments (<code>toolUse.input</code>), tool results your app returns (<code>toolResult</code>) and tool definitions (<code>toolSpec</code>). PII there is neither blocked nor masked.</p></div>
+<div class="card" style="padding: 30px; gap: 14px;"><p class="tag">ORIGINALS REMAIN</p><h3>Logs and traces</h3><p class="body" style="font-size: 26px;">The <code>input</code> field in model invocation logs always holds the original request. The <code>match</code> field in guardrail traces holds the original value.</p></div>
+</div>
+<div class="band" style="margin-top: 36px;">Redact or tokenize at the <span class="hl">application boundary</span>, and protect logs with their own controls.</div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>05 / 11</p></div>
+<aside>Bedrock Guardrails sensitive information filters detect PII in input prompts and model responses. The policy can block the content or mask detected values with labels such as {EMAIL}. Detection is probabilistic, ML-based and context-dependent, so it works better with enough surrounding context; custom regex filters match patterns instead. AWS documents that the filter evaluates text content only: it does not evaluate PII the model generates into tool call arguments (toolUse.input in Converse), PII in tool results the application returns to the model (toolResult), or PII in tool definitions (toolSpec.description and toolSpec.inputSchema). A privacy-focused tool-calling design should therefore redact or tokenize sensitive values at the application boundary for those fields. Guardrails are also not a substitute for log redaction. If model invocation logging to CloudWatch Logs or S3 is enabled, the input field always contains the original, unmodified request regardless of guardrail intervention, and the match field in the PII entity results returned in API responses and traces contains the original value by design. AWS recommends CloudWatch log data protection for sensitive data in logs. ApplyGuardrail can assess content with source set to INPUT or OUTPUT, but the application still owns log handling and tool data handling. Verify against the current documentation: the ApplyGuardrail page does not say what differs between INPUT and OUTPUT or mention tool use, and the mask label for custom regex matches is not documented.</aside>
 </section>
 <section id="s5" class="slide">
 <p class="eyebrow">04 / Logs and retention</p>
 <h2>Logs are data too.</h2>
 <div class="cards"><div class="card"><p class="tag">INVOCATION LOGS</p><h3>Off by default</h3><p class="body">Turn on model invocation logging to CloudWatch Logs or S3. They can contain full prompts and answers.</p></div><div class="card"><p class="tag">CLOUDTRAIL</p><h3>Who called what</h3><p class="body">API activity for audit: caller identity, time, action. Not the prompt text.</p></div><div class="card"><p class="tag">TTL</p><h3>Maximum, not exact</h3><p class="body">DynamoDB TTL removes expired items typically within a couple of days. Treat it as an upper bound.</p></div></div>
 <div class="band">This repo's gateway logs request IDs and error codes, <span class="hl">not prompt text</span>.</div>
-<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>05 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>06 / 11</p></div>
 <aside>If invocation logging is enabled at account level it can capture prompts even when your own app does not log them. Restrict access to the log destination, and apply retention to it.</aside>
 </section>
 <section id="s6" class="slide">
@@ -187,7 +199,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Record enough to reconstruct an answer.</h2>
 <table class="dense" style="font-size: 26px;"><tr><th style="width: 30%;">Record</th><th style="width: 42%;">Why</th><th style="width: 28%;">Where</th></tr><tr><td>Model or profile ID</td><td>Behaviour changes by model</td><td>Answer metadata</td></tr><tr><td>Prompt version</td><td>Know which instructions ran</td><td>Prompt management ARN</td></tr><tr><td>Guardrail version</td><td>Know which policy applied</td><td>Request config</td></tr><tr><td>Source documents and version</td><td>Trace a claim to evidence</td><td>Citations, KB metadata</td></tr><tr><td>Trace ID</td><td>Join logs across services</td><td>X-Ray, correlation ID</td></tr><tr><td>Reviewer outcome</td><td>Show human oversight</td><td>Case store</td></tr></table>
 <div class="band">The goal: <span class="hl">prove</span> which approved source, prompt and policy produced one answer.</div>
-<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>06 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>07 / 11</p></div>
 <aside>This is the capstone idea from the study guide: an assistant that proves which approved source, prompt, policy and release produced its answer. Store these fields with every answer.</aside>
 </section>
 <section id="s7" class="slide">
@@ -195,7 +207,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Models, data and lineage.</h2>
 <div class="cards"><div class="card"><p class="tag">MODEL CARD</p><h3>Intended use and risks</h3><p class="body">SageMaker Model Cards record purpose, evaluation and limitations. A content change makes a new version; approval status is separate.</p></div><div class="card"><p class="tag">LINEAGE</p><h3>Where did it come from</h3><p class="body">S3 object versions, knowledge-base data source and ingestion job, metadata files.</p></div><div class="card"><p class="tag">EVIDENCE</p><h3>Evaluation reports</h3><p class="body">Keep the golden dataset, scores and release decision with the version.</p></div></div>
 <div class="band">Verify the Model Card <span class="hl">versioning and approval</span> behaviour in the current API docs before relying on it.</div>
-<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>07 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>08 / 11</p></div>
 <aside>Task 3.3 asks you to document models, data lineage and sources. Model Cards separate content versions from approval status. The practice question on legal approval relies on that distinction; confirm exact behaviour in the documentation.</aside>
 </section>
 <section id="s8" class="slide">
@@ -203,14 +215,14 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Detect misuse, then act automatically.</h2>
 <div class="flow"><div class="step"><p class="num">1 / DETECT</p><h3>Signals</h3><p class="body">Guardrail interventions, error rates, token spikes, odd callers.</p></div><div class="arrow">&rarr;</div><div class="step"><p class="num">2 / ALARM</p><h3>CloudWatch</h3><p class="body">Metric filters on structured logs, then alarms with thresholds.</p></div><div class="arrow">&rarr;</div><div class="step final"><p class="num">3 / ACT</p><h3>Remediate</h3><p class="body">EventBridge to Lambda or Step Functions: tighten a guardrail, roll back a prompt, disable a key.</p></div></div>
 <div class="band">Metric filters count <span class="hl">new</span> log events only; they do not backfill history.</div>
-<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>08 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>09 / 11</p></div>
 <aside>Automating the response is what separates monitoring from governance. Also monitor drift: quality metrics over time against a golden set (see slides 10 and 11).</aside>
 </section>
 <section id="s9" class="slide">
 <p class="eyebrow">08 / Responsible AI</p>
 <h2>Be transparent, fair, and honest about limits.</h2>
 <table class="dense" style="font-size: 26px;"><tr><th style="width: 22%;">Principle</th><th style="width: 48%;">Practice</th><th style="width: 30%;">In this repo</th></tr><tr><td>Transparency</td><td>Show sources, explain how the answer was made, label AI output</td><td>Citations in the KB Lab</td></tr><tr><td>Confidence</td><td>Report scores honestly; a similarity score is not a probability</td><td>Relevance scores</td></tr><tr><td>Fairness</td><td>Test across groups with a fixed rubric and dataset</td><td>Stereotyping metric, slide 05</td></tr><tr><td>Limitations</td><td>Document what the system must not be used for</td><td>Model card</td></tr><tr><td>Policy</td><td>Automated checks that enforce the rules</td><td>Guardrails, release gates</td></tr></table>
-<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>09 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>10 / 11</p></div>
 <aside>Fairness tests must use the same approved rubric and a fixed dataset, otherwise two releases are not comparable. Document known limitations and show them to users.</aside>
 </section>
 <section id="wrap" class="slide dark">
@@ -218,7 +230,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Evidence, not trust.</h2>
 <div class="cards"><div class="card"><p class="tag">ISOLATE</p><h3>Private paths</h3><p class="body">VPC endpoints, endpoint policy, scoped IAM.</p></div><div class="card"><p class="tag">MINIMIZE</p><h3>PII and logs</h3><p class="body">Mask early, log little, expire data.</p></div><div class="card"><p class="tag">PROVE</p><h3>Audit and docs</h3><p class="body">Version, source and reviewer on every answer.</p></div></div>
 <div class="band">Next: slide 08, from clean data to retrieval.</div>
-<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>10 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Privacy, governance and responsible AI</p><p>11 / 11</p></div>
 <aside>Close by linking the three tasks to one question: if an auditor asks how this answer was produced, what can you show?</aside>
 </section>
 </main></div>

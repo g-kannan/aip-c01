@@ -147,7 +147,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h1>Better inputs.<br>Better <span class="accent">chunks</span>.</h1>
 <div class="stripe"></div>
 <p class="lede" style="width: 1400px;">Prepare data for a model, choose a vector store, and design retrieval that returns the passage and the exception next to it.</p>
-<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>01 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>01 / 11</p></div>
 <aside>Retrieval quality is decided long before the model runs: by how you clean data, how you split it, what metadata you keep, and how you search. Demos: Input Cleaner and Chunking Playground in exam_app.py, and the Knowledge Base Lab in app.py.</aside>
 </section>
 <section id="s2" class="slide">
@@ -155,7 +155,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Clean before you embed.</h2>
 <div class="flow"><div class="step tight"><p class="num">1 / VALIDATE</p><h3>Quality gate</h3><p class="body">Required fields, types, ISO dates. Quarantine bad records.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">2 / NORMALIZE</p><h3>Make it uniform</h3><p class="body">Unicode, whitespace, boilerplate, dates, abbreviations.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">3 / EXTRACT</p><h3>Pull out entities</h3><p class="body">IDs, versions, dates: regex for fixed formats, a model for prose.</p></div><div class="arrow">&rarr;</div><div class="step final tight"><p class="num">4 / FORMAT</p><h3>Fit the model</h3><p class="body">Right request body, right modality, within the context window.</p></div></div>
 <div class="band">Bad data in an index is <span class="hl">expensive to find and slow to fix</span>. Gate it at ingestion.</div>
-<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>02 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>02 / 11</p></div>
 <aside>Images, audio and tabular data need their own handling: images go in as content blocks, audio is transcribed first (for example with Amazon Transcribe), tables are serialized or summarized. Normalization reduces tokens and makes retrieval consistent. Use regex for well-shaped identifiers and a model only where prose is messy.</aside>
 </section>
 <section id="s3" class="slide">
@@ -163,14 +163,14 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Each provider has its own request body.</h2>
 <table class="dense" style="font-size: 26px;"><tr><th style="width: 34%;">API / family</th><th style="width: 66%;">Key fields</th></tr><tr><td>Converse (any supported model)</td><td><span class="mono">messages</span>, <span class="mono">system</span>, <span class="mono">inferenceConfig.maxTokens</span></td></tr><tr><td>InvokeModel: Anthropic Claude</td><td><span class="mono">anthropic_version</span>, <span class="mono">max_tokens</span>, <span class="mono">messages</span></td></tr><tr><td>InvokeModel: Amazon Nova</td><td><span class="mono">schemaVersion: messages-v1</span>, <span class="mono">inferenceConfig.max_new_tokens</span></td></tr><tr><td>InvokeModel: Amazon Titan Text</td><td><span class="mono">inputText</span>, <span class="mono">textGenerationConfig</span></td></tr><tr><td>InvokeModel: Meta Llama</td><td><span class="mono">prompt</span>, <span class="mono">max_gen_len</span></td></tr></table>
 <div class="band">Converse hides these differences, so <span class="hl">switching models needs no body rewrite</span>.</div>
-<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>03 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>03 / 11</p></div>
 <aside>A body built for the wrong family is rejected with a ValidationException. Validate the generated request immediately before invoking, especially in agent workflows where the model builds the call. Field names here are illustrative: confirm against the model's inference-parameters page.</aside>
 </section>
 <section id="s4" class="slide">
 <p class="eyebrow">03 / Choose a vector store</p>
 <h2>Match the store to the workload.</h2>
 <table class="dense" style="font-size: 26px;"><tr><th style="width: 34%;">Option</th><th style="width: 66%;">Good when</th></tr><tr><td>OpenSearch Serverless</td><td>You want keyword plus vector (hybrid) search and rich filters</td></tr><tr><td>Aurora PostgreSQL (pgvector)</td><td>Your data is already relational and you want SQL joins and filters</td></tr><tr><td>S3 Vectors</td><td>Large, cost-sensitive collections with infrequent queries</td></tr><tr><td>Neptune Analytics</td><td>Relationships matter: graph-based retrieval (GraphRAG)</td></tr><tr><td>Pinecone, Redis Enterprise Cloud, MongoDB Atlas</td><td>You already run it and need a managed integration</td></tr><tr><td>Managed knowledge base</td><td>You want Bedrock to run the store for you</td></tr></table>
-<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>04 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>04 / 11</p></div>
 <aside>There is no single best store. The exam asks you to match requirements: existing estate, hybrid search, cost per query, scale, operational effort. Check the current list of supported stores for knowledge bases. Cross-account embeddings with an existing OpenSearch index use a remote-inference connector.</aside>
 </section>
 <section id="s5" class="slide">
@@ -178,7 +178,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Metadata makes retrieval precise.</h2>
 <div class="cards"><div class="card"><p class="tag">FILTER</p><h3>Narrow the search</h3><p class="body">Filter on tenant, product, firmware, year before similarity. The wrong firmware never appears.</p></div><div class="card"><p class="tag">INGEST</p><h3>Sidecar files</h3><p class="body">Put <span class="mono">&lt;file&gt;.metadata.json</span> next to each document in S3 and re-sync. This repo has examples.</p></div><div class="card"><p class="tag">EXACT IDS</p><h3>Hybrid search</h3><p class="body">Semantic search is weak on alarm IDs and part numbers. Hybrid adds keyword matching.</p></div></div>
 <div class="band">Similarity is high for the <span class="hl">wrong version</span> too. Only a filter rules it out.</div>
-<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>05 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>05 / 11</p></div>
 <aside>A metadata filter limits which chunks are eligible; it only works for attributes ingested from the metadata files. Try the Knowledge Base Lab: year >= 2024, then clear the filter and compare sources.</aside>
 </section>
 <section id="s6" class="slide">
@@ -186,7 +186,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Chunking sets the ceiling.</h2>
 <table class="dense" style="font-size: 26px;"><tr><th style="width: 22%;">Strategy</th><th style="width: 44%;">How it works</th><th style="width: 34%;">Watch for</th></tr><tr><td>Fixed size</td><td>N tokens with an overlap percentage</td><td>Splits a rule from its exception</td></tr><tr><td>Hierarchical</td><td>Search small child chunks, return the larger parent</td><td>Bigger prompts; tune parent size</td></tr><tr><td>Semantic</td><td>Split where the meaning shifts, using an embedding model</td><td>Extra cost and latency at ingestion</td></tr><tr><td>None</td><td>One chunk per document</td><td>Only for short documents</td></tr><tr><td>Custom (Lambda)</td><td>Your own transformation step</td><td>You own the code and tests</td></tr></table>
 <div class="band">A reranker cannot fix a passage that <span class="hl">was never retrieved</span>.</div>
-<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>06 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>06 / 11</p></div>
 <aside>Defaults and limits vary; check the current knowledge-base chunking options. The demo shows the classic failure: a procedure chunk without the safety exception that follows it. Hierarchical retrieval returns the parent, which includes the exception. Overlap helps but costs index size.</aside>
 </section>
 <section id="s7" class="slide">
@@ -194,15 +194,23 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Transform, retrieve, rerank.</h2>
 <div class="flow"><div class="step tight"><p class="num">1 / TRANSFORM</p><h3>Rewrite the query</h3><p class="body">Expand acronyms, decompose multi-part questions, rewrite vague ones.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">2 / RETRIEVE</p><h3>Semantic or hybrid</h3><p class="body">Embed the query, filter by metadata, take the top k.</p></div><div class="arrow">&rarr;</div><div class="step tight"><p class="num">3 / RERANK</p><h3>Reorder</h3><p class="body">A reranker model scores query and passage together; keep the best few.</p></div><div class="arrow">&rarr;</div><div class="step final tight"><p class="num">4 / GENERATE</p><h3>Answer with sources</h3><p class="body">Prompt with the chunks and return citations.</p></div></div>
 <div class="band">Use the <span class="hl">same embedding model</span> for the index and the query.</div>
-<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>07 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>07 / 11</p></div>
 <aside>Query expansion: an approved synonym list maps internal acronyms to formal terms before retrieval. Decomposition splits a multi-part question into sub-queries. Reranking improves order, not recall. If chunks are wrong, no later step rescues them.</aside>
+</section>
+<section id="s7b" class="slide">
+<p class="eyebrow">06 / Search settings</p>
+<h2>Hybrid finds the ID. Rerank fixes the order.</h2>
+<table class="dense"><tr><th style="width: 18%;">Option</th><th style="width: 36%;">Use it when</th><th style="width: 46%;">Watch for</th></tr><tr><td>HYBRID</td><td>Users ask natural-language questions that also contain exact identifiers, such as alarm E42.</td><td>Needs a filterable text field. Supported for OpenSearch Serverless, Amazon RDS and MongoDB; on any other store it silently runs as semantic.</td></tr><tr><td>SEMANTIC</td><td>Questions are paraphrased and meaning matters more than the exact words.</td><td>An exact identifier can be outranked by passages that only sound similar.</td></tr><tr><td>Reranking</td><td>The right passage is retrieved but ranked too low.</td><td>Overrides the default ranking and works on text only. Cohere Rerank 3.5 or Amazon Rerank 1.0; Amazon Rerank is not in us&#8209;east&#8209;1. It cannot add passages that were never retrieved.</td></tr><tr><td>Direct OpenSearch</td><td>The app is not tied to the Knowledge Bases API.</td><td>You own the hybrid query and the pipeline that combines scores.</td></tr></table>
+<div class="band">Staying on the Knowledge Bases API? <span class="hl">HYBRID plus a reranker</span> is the lower-code fit.</div>
+<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>08 / 11</p></div>
+<aside>In a customer-managed Knowledge Base, vectorSearchConfiguration.overrideSearchType takes HYBRID or SEMANTIC. HYBRID queries both the vector embeddings and the raw text, so it suits natural-language questions that also include exact identifiers. The AWS page says hybrid search is only supported for Amazon RDS, OpenSearch Serverless and MongoDB vector stores that contain a filterable text field; otherwise the query uses semantic search, with no error, so test it. Reranking can be used through Retrieve or RetrieveAndGenerate, works only on textual data, and its results override the default Knowledge Bases ranking. The supported reranking models are Amazon Rerank 1.0 and Cohere Rerank 3.5, and Amazon Rerank 1.0 is not available in US East (N. Virginia). A reranker orders what retrieval returned; it cannot rescue a passage that was never retrieved. Calling OpenSearch Serverless directly is valid in another architecture, using a hybrid query and a search pipeline that combines scores, but if the application must keep using the Knowledge Bases API, the retrieval configuration is the lower-code fit. The AWS pages read do not say whether hybrid search and reranking can be combined in one call, and the direct OpenSearch point was not checked against its documentation, so verify both. The Knowledge Base Lab in app.py has the SEMANTIC and HYBRID selector; it does not yet send a reranking model for vector-store knowledge bases.</aside>
 </section>
 <section id="s8" class="slide">
 <p class="eyebrow">07 / Keep it fresh</p>
 <h2>Sync the index when sources change.</h2>
 <div class="flow"><div class="step"><p class="num">1 / DETECT</p><h3>A source changes</h3><p class="body">S3 event, schedule, or a pipeline step after a document update.</p></div><div class="arrow">&rarr;</div><div class="step"><p class="num">2 / SYNC</p><h3>Start an ingestion job</h3><p class="body">The job adds, updates and removes only what changed.</p></div><div class="arrow">&rarr;</div><div class="step final"><p class="num">3 / VERIFY</p><h3>Check the result</h3><p class="body">Failed documents, counts, and a canary query for a known fact.</p></div></div>
 <div class="band">Deleting a source file does nothing until the <span class="hl">next sync</span>: stale answers come from stale indexes.</div>
-<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>08 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>09 / 11</p></div>
 <aside>Change detection plus a refresh workflow keeps the index accurate. In Bedrock knowledge bases, StartIngestionJob syncs the data source. Re-sync after adding or changing metadata files too. Track index freshness as a metric.</aside>
 </section>
 <section id="s9" class="slide">
@@ -210,7 +218,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>One capability, several interfaces.</h2>
 <table class="dense" style="font-size: 26px;"><tr><th style="width: 34%;">Interface</th><th style="width: 66%;">Use it when</th></tr><tr><td>Retrieve API</td><td>You build the prompt yourself and want the raw chunks and scores</td></tr><tr><td>RetrieveAndGenerate</td><td>You want retrieval, generation and citations in one call</td></tr><tr><td>Agent tool / function call</td><td>The model decides when to search, as one of several tools</td></tr><tr><td>MCP server</td><td>Many clients or agents need one standard tool definition</td></tr></table>
 <div class="band">Keep the <span class="hl">contract stable</span>: same inputs, same outputs, whatever store sits behind it.</div>
-<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>09 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>10 / 11</p></div>
 <aside>Model Context Protocol standardizes how tools are described and called, so one retrieval tool can serve many agents. Whichever interface you pick, return chunk text, source and score consistently so downstream code does not change when the store does.</aside>
 </section>
 <section id="wrap" class="slide dark">
@@ -218,7 +226,7 @@ table.dense{font-size:24px}table.dense th,table.dense td{padding:16px 20px}
 <h2>Retrieval is a pipeline.</h2>
 <div class="cards"><div class="card"><p class="tag">PREPARE</p><h3>Gate and normalize</h3><p class="body">Fix inputs before you embed them.</p></div><div class="card"><p class="tag">SPLIT</p><h3>Chunk and tag</h3><p class="body">Keep rules with exceptions; add metadata.</p></div><div class="card"><p class="tag">SEARCH</p><h3>Hybrid, rerank, sync</h3><p class="body">Filter, rerank, and keep the index fresh.</p></div></div>
 <div class="band">Try it: <span class="hl">Chunking Playground</span>, <span class="hl">Input Cleaner</span>, and the Knowledge Base Lab.</div>
-<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>10 / 10</p></div>
+<div class="footer"><p>Amazon Bedrock · Data preparation, vector stores and retrieval</p><p>11 / 11</p></div>
 <aside>Close with the three levers: input quality, chunking and metadata, search strategy. Then the demos: change one setting at a time and watch which chunk comes back.</aside>
 </section>
 </main></div>
