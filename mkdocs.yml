@@ -1,4 +1,6 @@
 site_name: AIP-C01 study site
+# Set by the Pages workflow; empty for local builds so `mkdocs serve` stays at the root.
+site_url: !ENV [SITE_URL, ""]
 site_description: Notes, diagrams, slide decks and labs for the AWS Certified Generative AI Developer – Professional exam.
 docs_dir: docs
 site_dir: site

@@ -1,0 +1,55 @@
+name: Deploy study site
+
+# Builds the MkDocs site and publishes it to GitHub Pages.
+# One-time setup: Settings > Pages > Build and deployment > Source = "GitHub Actions".
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "slides/**"
+      - "README.md"
+      - "mkdocs.yml"
+      - "hooks/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      NO_MKDOCS_2_WARNING: "1"
+      # Real URL, so the 404 page and sitemap use the right base path. Unset locally.
+      SITE_URL: https://g-kannan.github.io/aip-c01/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      # Only the dev group (MkDocs); the AWS and Streamlit dependencies are not needed to build the site.
+      - run: uv sync --only-group dev
+      # The study guide is gitignored, so it is never in the checkout and never published.
+      - run: uv run --no-sync mkdocs build --strict
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
