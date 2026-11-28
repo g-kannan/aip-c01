@@ -79,7 +79,9 @@ nav:
   - Amazon Bedrock:
       - bedrock/index.md
       - Inference APIs: bedrock/inference.md
+      - Sampling parameters: bedrock/sampling-parameters.md
       - Knowledge Bases: bedrock/knowledge-bases.md
+      - Vector stores: bedrock/vector-stores.md
       - Chunking configuration: bedrock/chunking-configuration.md
       - Guardrails: bedrock/guardrails.md
       - Prompt management: bedrock/prompt-management.md

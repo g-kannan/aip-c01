@@ -16,6 +16,10 @@ All inference calls go to the `bedrock-runtime` endpoint. The choice is about me
 - **Streaming is not async:** streaming returns tokens sooner, but the application still holds the connection and compute until the response ends. Only `StartAsyncInvoke` hands the work to Bedrock.
 - **Check model support:** before choosing Converse, streaming or async, check that the model supports that API.
 
+## Sampling settings
+
+Converse takes `temperature`, `topP`, `maxTokens` and `stopSequences` in `inferenceConfig`. `top_k` and other provider options go in `additionalModelRequestFields`. See [Sampling parameters](sampling-parameters.md) for what each one does and how to tune it.
+
 ## StartAsyncInvoke
 
 | Part | Fields |

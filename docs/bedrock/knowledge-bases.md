@@ -22,6 +22,10 @@ Set under `retrievalConfiguration.vectorSearchConfiguration`, for customer-manag
 
 If the application must keep using the Knowledge Bases API, HYBRID plus a reranker is the lower-code fit. Calling OpenSearch Serverless directly is an option only when you are not tied to that API.
 
+## Vector store
+
+`storageConfiguration.type` picks where the vectors live. The deciding facts for OpenSearch Serverless versus S3 Vectors: only OpenSearch (Serverless or managed cluster) holds binary embeddings, only OpenSearch Serverless gives hybrid search of the two, and S3 Vectors is the cheaper store for rarely queried data. See [Vector stores](vector-stores.md) for the full comparison.
+
 ## Chunking
 
 How documents are split decides what retrieval can return. See [Chunking configuration](chunking-configuration.md) for the API fields, ranges and how to choose a strategy.
