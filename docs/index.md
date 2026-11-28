@@ -1,32 +1,28 @@
 # AIP-C01 study site
 
-Notes, diagrams, slide decks and labs for the AWS Certified Generative AI Developer – Professional exam. Use the search box (press `/` or `s`) to find a topic across every page.
+Notes, diagrams, slide decks and labs for the AWS Certified Generative AI Developer – Professional exam, organised by service. Use the tabs at the top to move between areas, and search (press `/` or `s`) to find a topic across every page, including the text of every slide.
 
 <div class="grid cards" markdown>
+
+- **[Amazon Bedrock](bedrock/index.md)**
+
+    [Inference APIs](bedrock/inference.md) · [Knowledge Bases](bedrock/knowledge-bases.md) · [Chunking](bedrock/chunking-configuration.md) · [Guardrails](bedrock/guardrails.md) · [Prompt management](bedrock/prompt-management.md) · [Monitoring and logging](bedrock/monitoring-and-logging.md) · [Caching](bedrock/caching.md) · [Cost and quota](bedrock/cost-and-quota.md)
+
+- **[Other AWS services](services/index.md)**
+
+    [AWS Step Functions](services/step-functions.md) and Bedrock Flows, plus one-line summaries of Lambda, EventBridge, SQS, DynamoDB and the rest.
 
 - **[Exam map](exam-domains.md)**
 
     Every exam domain and task, with the slides and demos that cover it, and the gaps.
 
-- **[Supporting services](supporting-services.md)**
+- **[Diagrams](diagrams.md) and [gotchas](gotchas.md)**
 
-    Step Functions, Bedrock Flows, Lambda, EventBridge, SQS and the rest, and how to choose an orchestrator.
+    Every diagram and trap card in one place. Each service page also links the ones it needs.
 
-- **[Chunking configuration](chunking-configuration.md)**
+- **[Slide decks](decks/index.md)**
 
-    The Knowledge Base `ChunkingConfiguration` API fields and ranges, and how to choose a strategy.
-
-- **[Diagrams](diagrams.md)**
-
-    Chunking strategies, token quota burndown, HNSW search, KNN versus HNSW, prompt versus semantic caching.
-
-- **[Gotchas](gotchas.md)**
-
-    Four traps that cost points: hierarchical chunking on S3 vectors, `max_tokens` and quota, prompt routing, router pairs.
-
-- **[Slide decks](decks.md)**
-
-    Fourteen decks, one per exam topic, each with speaker notes.
+    Fourteen decks, each readable here as a page with one section per slide and its speaker notes.
 
 - **[Labs and setup](labs.md)**
 

@@ -302,6 +302,16 @@ class RequestShapeTests(unittest.TestCase):
         with self.assertRaises(ParamValidationError):
             validate_parameters(zero_overlap, shape)
 
+    def test_caching_page_example_is_a_valid_converse_request(self):
+        import re
+        from botocore.validate import validate_parameters
+        page = (Path(__file__).parents[1] / "docs" / "bedrock" / "caching.md").read_text(encoding="utf-8")
+        request = json.loads(re.search(r"```json\n(.*?)```", page, re.S).group(1))
+        client, _ = self.client("bedrock-runtime")
+        validate_parameters(request, client.meta.service_model.operation_model("Converse").input_shape)
+        self.assertIn({"cachePoint": {"type": "default"}}, request["system"])
+        self.assertIn({"cachePoint": {"type": "default"}}, request["toolConfig"]["tools"])
+
     def test_prompt_management_and_prompt_arn_converse_are_valid(self):
         client, stub = self.client("bedrock-agent")
         template = prompts.IMPROVED_TEMPLATE

@@ -6,7 +6,7 @@ Click a diagram to zoom. Each one has a full text description for screen readers
 
 ![Five ways Amazon Bedrock Knowledge Bases split a document into chunks](images/bedrock-kb-chunking.svg)
 
-Default, fixed-size, hierarchical, semantic, and no chunking, with the settings each one takes. For the API fields, ranges and how to choose, see [Chunking configuration](chunking-configuration.md).
+Default, fixed-size, hierarchical, semantic, and no chunking, with the settings each one takes. For the API fields, ranges and how to choose, see [Chunking configuration](bedrock/chunking-configuration.md).
 
 ## Token quota burndown
 

@@ -338,9 +338,11 @@ Streamlit labs need AWS, so they run locally and are not part of the site. The s
 site leaves it out. To include it in a local build, set `INCLUDE_STUDY_GUIDE=1` (`$env:INCLUDE_STUDY_GUIDE=1` in
 PowerShell), and do not deploy that build.
 
-**Where content lives.** Reference and definitions (what a service is, field tables, how to choose) go in
-`docs/*.md`, which is the source and is read as a page. Teaching visuals go in `slides/`, which is the source for
-the deck and is turned into a page automatically. Do not copy content between the two.
+**Where content lives.** The site is organised by service: `docs/bedrock/` (one page per Bedrock feature, such
+as monitoring and logging) and `docs/services/` (Step Functions and the other services). Those pages hold the
+reference facts and link to the exact slide sections, diagrams, gotchas and labs. Teaching visuals stay in
+`slides/`, which is the source for each deck and is turned into a page automatically. Link to a slide section
+instead of copying it; `mkdocs build --strict` fails on a broken link or slide anchor.
 
 ## Exam demos and slides
 

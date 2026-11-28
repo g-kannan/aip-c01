@@ -6,7 +6,7 @@ Four details that are easy to get wrong. Each card states the trap, the fix, and
 
 ![Gotcha: hierarchical chunking is not recommended on S3 vector buckets above 8,000 combined tokens](gotchas/hierarchical-chunking-s3-vector-bucket.svg)
 
-See [Chunking configuration](chunking-configuration.md) for the hierarchical fields.
+See [Chunking configuration](bedrock/chunking-configuration.md) for the hierarchical fields.
 
 ## `max_tokens` reserves quota
 

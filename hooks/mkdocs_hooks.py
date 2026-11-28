@@ -63,7 +63,8 @@ def on_config(config):
     deck_pages = [{_deck_title(d, catalog): f"decks/{d}.md"} for d in _deck_dirs(root)]
     for position, item in enumerate(config.nav):
         if isinstance(item, dict) and DECKS_NAV_TITLE in item:
-            config.nav[position] = {DECKS_NAV_TITLE: [{"Overview": item[DECKS_NAV_TITLE]}] + deck_pages}
+            # A bare first entry becomes the section's own page (navigation.indexes).
+            config.nav[position] = {DECKS_NAV_TITLE: [item[DECKS_NAV_TITLE]] + deck_pages}
     if _include_study_guide(config):
         config.nav.append({"Study guide": STUDY_GUIDE})
     return config

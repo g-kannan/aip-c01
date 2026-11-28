@@ -26,6 +26,10 @@ theme:
         name: Switch to dark theme
   features:
     - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.path
     - navigation.tracking
     - navigation.top
     - navigation.footer
@@ -34,6 +38,11 @@ theme:
     - search.share
     - content.code.copy
     - toc.follow
+
+# Broken links and missing heading anchors fail `mkdocs build --strict`.
+validation:
+  links:
+    anchors: warn
 
 plugins:
   - search:
@@ -65,9 +74,22 @@ hooks:
 nav:
   - Home: index.md
   - Exam map: exam-domains.md
-  - Supporting services: supporting-services.md
-  - Chunking configuration: chunking-configuration.md
-  - Diagrams: diagrams.md
-  - Gotchas: gotchas.md
-  - Slide decks: decks.md
+  - Amazon Bedrock:
+      - bedrock/index.md
+      - Inference APIs: bedrock/inference.md
+      - Knowledge Bases: bedrock/knowledge-bases.md
+      - Chunking configuration: bedrock/chunking-configuration.md
+      - Guardrails: bedrock/guardrails.md
+      - Prompt management: bedrock/prompt-management.md
+      - Monitoring and logging: bedrock/monitoring-and-logging.md
+      - Caching: bedrock/caching.md
+      - Cost and quota: bedrock/cost-and-quota.md
+  - Other AWS services:
+      - services/index.md
+      - AWS Step Functions: services/step-functions.md
+  - Visual references:
+      - Diagrams: diagrams.md
+      - Gotchas: gotchas.md
+  # The hook expands this into the overview plus one generated page per deck.
+  - Slide decks: decks/index.md
   - Labs and setup: labs.md

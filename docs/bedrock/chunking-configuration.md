@@ -2,7 +2,7 @@
 
 Source: the AWS API reference for [ChunkingConfiguration](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_ChunkingConfiguration.html) and its child pages (FixedSize, Hierarchical, HierarchicalLevel, Semantic). Every range and required flag below was checked against the installed botocore `bedrock-agent` model, and the example configs are tested in `tests/test_exam_labs.py` (`RequestShapeTests`).
 
-This page covers the API shape and how to choose. For the five-way picture, see [`docs/images/bedrock-kb-chunking.svg`](images/bedrock-kb-chunking.svg). For the classic failure, see the [S3 vector bucket gotcha](gotchas/hierarchical-chunking-s3-vector-bucket.svg).
+This page covers the API shape and how to choose. For the five-way picture, see [`docs/images/bedrock-kb-chunking.svg`](../images/bedrock-kb-chunking.svg). For the classic failure, see the [S3 vector bucket gotcha](../gotchas/hierarchical-chunking-s3-vector-bucket.svg).
 
 ## Where it goes
 
